@@ -1,0 +1,44 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Discord.Commands;
+using Microsoft.EntityFrameworkCore;
+using Steward.Context;
+
+namespace Steward.Discord.CustomPreconditions
+{
+	public class RequireHouseOwner : PreconditionAttribute
+	{
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		{
+			var db = new StewardContext();
+			var activeCharacter =
+				db.PlayerCharacters
+					.Include(c => c.House)
+					.ThenInclude(h => h.HouseOwner)
+					.SingleOrDefault(c => c.DiscordUserId == context.User.Id.ToString() && c.IsAlive());
+
+			if (activeCharacter == null)
+			{
+				return Task.FromResult(
+					PreconditionResult.FromError("You don't have a living character."));
+			}
+
+			if (activeCharacter.House == null)
+			{
+				return Task.FromResult(
+					PreconditionResult.FromError("Your character is not part of a house."));
+			}
+
+			if (activeCharacter.CharacterId != activeCharacter.House.HouseOwner.CharacterId)
+			{
+				return Task.FromResult(
+					PreconditionResult.FromError("You are not the owner of this house."));
+			}
+
+			return Task.FromResult(PreconditionResult.FromSuccess());
+		}
+	}
+}
