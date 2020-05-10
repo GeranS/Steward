@@ -67,27 +67,6 @@ namespace Steward.Discord.AdminCommands
             await ReplyAsync("Graveyard added.");
         }
 
-        [Command("advance")]
-        [RequireStewardPermission]
-        public async Task AdvanceYear(int amount)
-        {
-            if(amount <= 0)
-            {
-                await ReplyAsync("YOU FOOL, YOU ABSOLUTE BUFFOON");
-                return;
-            }
-
-            var currentYear = _stewardContext.Year.First();
-
-            currentYear.CurrentYear += amount;
-
-            _stewardContext.Year.Update(currentYear);
-
-            await _stewardContext.SaveChangesAsync();
-
-            await ReplyAsync($"The year is now {currentYear.CurrentYear}.");
-        }
-
         [Command("reset")]
         [RequireStewardPermission]
         public async Task Reset([Remainder] SocketGuildUser mention)

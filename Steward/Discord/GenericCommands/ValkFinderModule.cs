@@ -216,5 +216,38 @@ namespace Steward.Discord.GenericCommands
 
 			await ReplyAsync($"Created character with the name {newCharacter.CharacterName}.");
 		}
+
+		[Command("history")]
+		public async Task ShowCharacterHistory()
+		{
+			var characters =
+				_stewardContext.PlayerCharacters
+					.Include(c => c.House)
+					.Where(c => c.DiscordUserId == Context.User.Id.ToString()).ToList();
+
+			var activeCharacter = characters.FirstOrDefault(cs => cs.IsAlive());
+
+			var embedBuilder = new EmbedBuilder();
+
+			var year = _stewardContext.Year.SingleOrDefault();
+
+			if (activeCharacter != null)
+			{
+				characters.Remove(activeCharacter);
+
+				embedBuilder.AddField($"{activeCharacter.GetAge(year.CurrentYear)}",
+					$"{activeCharacter.CharacterName} of House {activeCharacter.House.HouseName}");
+			}
+
+			var sortedCharacters = characters.OrderBy(c => c.YearOfBirth);
+
+			foreach (var character in sortedCharacters)
+			{
+				embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
+					$"{character.CharacterName} of House {activeCharacter.House.HouseName}");
+			}
+
+			await ReplyAsync(embed: embedBuilder.Build());
+		}
 	}
 }

@@ -219,6 +219,7 @@ namespace Steward.Context
 			modelBuilder.Entity<Year>()
 				.HasData(new Year()
 				{
+					StupidId = 1,
 					CurrentYear = 368
 				});
 		}

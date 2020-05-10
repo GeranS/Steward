@@ -42,7 +42,6 @@ namespace Steward.Services
 
             if (graveyardMessage)
             {
-	            activeCharacter.YearOfDeath = "???";
 	            var message = $"{activeCharacter.CharacterName} {activeCharacter.YearOfBirth} - {activeCharacter.YearOfDeath}";
 
 	            foreach (var graveyardChannel in graveYards.Select(graveyard => _client.GetChannel(ulong.Parse(graveyard.ChannelId)) as SocketTextChannel))

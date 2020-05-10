@@ -501,18 +501,22 @@ namespace Steward.Migrations
 
             modelBuilder.Entity("Steward.Context.Models.Year", b =>
                 {
-                    b.Property<int>("CurrentYear")
+                    b.Property<int>("StupidId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.HasKey("CurrentYear");
+                    b.Property<int>("CurrentYear")
+                        .HasColumnType("int");
+
+                    b.HasKey("StupidId");
 
                     b.ToTable("Year");
 
                     b.HasData(
                         new
                         {
+                            StupidId = 1,
                             CurrentYear = 368
                         });
                 });
