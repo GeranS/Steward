@@ -134,6 +134,90 @@ namespace Steward.Migrations
                             INT = 0,
                             PER = 0,
                             STR = 0
+                        },
+                        new
+                        {
+                            HouseId = "124",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = 0,
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            HouseDescription = "Empty.",
+                            HouseName = "Shandi Yongshi",
+                            INT = -1,
+                            PER = 0,
+                            STR = 1
+                        },
+                        new
+                        {
+                            HouseId = "125",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = 1,
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            HouseDescription = "Empty.",
+                            HouseName = "Dharmadhatu",
+                            INT = 0,
+                            PER = 0,
+                            STR = -1
+                        },
+                        new
+                        {
+                            HouseId = "126",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = -1,
+                            END = 1,
+                            HealthPoolBonus = 0,
+                            HouseDescription = "Empty.",
+                            HouseName = "Golden Carp",
+                            INT = 0,
+                            PER = 0,
+                            STR = 0
+                        },
+                        new
+                        {
+                            HouseId = "127",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = 0,
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            HouseDescription = "Empty.",
+                            HouseName = "Dafeng",
+                            INT = 1,
+                            PER = 0,
+                            STR = -1
+                        },
+                        new
+                        {
+                            HouseId = "128",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = 0,
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            HouseDescription = "Empty.",
+                            HouseName = "Nishe",
+                            INT = 0,
+                            PER = 1,
+                            STR = -1
+                        },
+                        new
+                        {
+                            HouseId = "129",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = 1,
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            HouseDescription = "Empty.",
+                            HouseName = "Harcaster",
+                            INT = 0,
+                            PER = -1,
+                            STR = 0
                         });
                 });
 
@@ -292,6 +376,58 @@ namespace Steward.Migrations
                             INT = 0,
                             PER = 1,
                             STR = -1
+                        },
+                        new
+                        {
+                            Id = "124",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = 0,
+                            Description = "Military Education - You have been educated in the martial and military.",
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            INT = -1,
+                            PER = 0,
+                            STR = 1
+                        },
+                        new
+                        {
+                            Id = "125",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = -1,
+                            Description = "Religious Education - You have been educated in the history of religion and spiritualism.",
+                            END = 1,
+                            HealthPoolBonus = 0,
+                            INT = 0,
+                            PER = 0,
+                            STR = 0
+                        },
+                        new
+                        {
+                            Id = "126",
+                            AbilityPointBonus = 0,
+                            ArmorClassBonus = 0,
+                            DEX = -1,
+                            Description = "Administrative Education - You have been educated in the managerial, and the clerical.",
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            INT = 1,
+                            PER = 0,
+                            STR = 0
+                        },
+                        new
+                        {
+                            Id = "127",
+                            AbilityPointBonus = 1,
+                            ArmorClassBonus = 0,
+                            DEX = 0,
+                            Description = "None - You are a regressive luddite, doomed to be abused for your inhuman resistance to Mother Nature.",
+                            END = 0,
+                            HealthPoolBonus = 0,
+                            INT = -2,
+                            PER = 0,
+                            STR = 0
                         });
                 });
 
@@ -346,6 +482,20 @@ namespace Steward.Migrations
                             DamageModifier = 0,
                             DieSize = 8,
                             IsRanged = false
+                        },
+                        new
+                        {
+                            WeaponName = "Dagger",
+                            DamageModifier = 0,
+                            DieSize = 6,
+                            IsRanged = false
+                        },
+                        new
+                        {
+                            WeaponName = "Shortbow",
+                            DamageModifier = 0,
+                            DieSize = 8,
+                            IsRanged = true
                         });
                 });
 
@@ -363,7 +513,7 @@ namespace Steward.Migrations
                     b.HasData(
                         new
                         {
-                            CurrentYear = 2000
+                            CurrentYear = 368
                         });
                 });
 

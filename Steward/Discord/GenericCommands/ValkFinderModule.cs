@@ -167,10 +167,11 @@ namespace Steward.Discord.GenericCommands
 		[Command("bio")]
 		public async Task SetBio(string bio)
 		{
-			var character = 
-				_context.PlayerCharacters.AsEnumerable().FirstOrDefault(pc => pc.IsAlive() && pc.DiscordUserId == Context.User.Id.ToString());
+			var activeCharacter =
+				_context.PlayerCharacters
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (character == null)
+			if (activeCharacter == null)
 			{
 				await ReplyAsync("Could not find a living character.");
 				return;
@@ -182,9 +183,9 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			character.Bio = bio;
+			activeCharacter.Bio = bio;
 
-			_context.PlayerCharacters.Update(character);
+			_context.PlayerCharacters.Update(activeCharacter);
 			await _context.SaveChangesAsync();
 
 			await ReplyAsync("Bio set.");

@@ -91,14 +91,45 @@ namespace Steward.Context
 				});
 
 			modelBuilder.Entity<Trait>()
-				.HasData(new Trait()
+				.HasData(new Trait[]
 				{
-					Id = "123",
-					STR = -1,
-					PER = 1,
-					Description =
-						"Court Education - You have been educated in the writ of law, and the book of justice or whatever."
-				});
+					new Trait()
+					{
+						Id = "123",
+						STR = -1,
+						PER = 1,
+						Description =
+							"Court Education - You have been educated in the writ of law, and the book of justice or whatever."
+					},
+					new Trait()
+					{
+						Id = "124",
+						STR = 1,
+						INT = -1,
+						Description = "Military Education - You have been educated in the martial and military."
+					},
+					new Trait()
+					{
+						Id = "125",
+						END = 1,
+						DEX = -1,
+						Description = "Religious Education - You have been educated in the history of religion and spiritualism."
+					},
+					new Trait()
+					{
+						Id = "126",
+						INT = 1,
+						DEX = -1,
+						Description = "Administrative Education - You have been educated in the managerial, and the clerical."
+					},
+					new Trait()
+					{
+						Id = "127",
+						INT = -2,
+						AbilityPointBonus = 1,
+						Description = "None - You are a regressive luddite, doomed to be abused for your inhuman resistance to Mother Nature."
+					}
+				} );
 
 			modelBuilder.Entity<CharacterTrait>()
 				.HasData(new CharacterTrait()
@@ -108,25 +139,87 @@ namespace Steward.Context
 				});
 
 			modelBuilder.Entity<House>()
-				.HasData(new House()
+				.HasData(new House[]
 				{
+					new House()
+					{
 					HouseId = "123",
 					HouseName = "Bob"
+					},
+					new House()
+					{
+						HouseId = "124",
+						STR = 1,
+						INT = -1,
+						HouseName = "Shandi Yongshi"
+					},
+					new House()
+					{
+						HouseId = "125",
+						DEX = 1,
+						STR = -1,
+						HouseName = "Dharmadhatu"
+					},
+					new House()
+					{
+						HouseId = "126",
+						END = 1,
+						DEX = -1,
+						HouseName = "Golden Carp"
+					},
+					new House()
+					{
+						HouseId = "127",
+						INT = 1,
+						STR = -1,
+						HouseName = "Dafeng"
+					},
+					new House()
+					{
+						HouseId = "128",
+						PER = 1,
+						STR = -1,
+						HouseName = "Nishe"
+					},
+					new House()
+					{
+						HouseId = "129",
+						DEX = 1,
+						PER = -1,
+						HouseName = "Harcaster"
+					}
 				});
 
 			modelBuilder.Entity<ValkFinderWeapon>()
-				.HasData(new ValkFinderWeapon()
+				.HasData(new ValkFinderWeapon[]
 				{
-					WeaponName = "Sword",
-					IsRanged = false,
-					DieSize = 8,
-					DamageModifier = CharacterAttribute.STR
+					new ValkFinderWeapon()
+					{
+						WeaponName = "Sword",
+						IsRanged = false,
+						DieSize = 8,
+						DamageModifier = CharacterAttribute.STR
+					},
+					new ValkFinderWeapon()
+					{
+						WeaponName = "Dagger",
+						IsRanged = false,
+						DieSize = 6,
+						DamageModifier = CharacterAttribute.STR
+					},
+					new ValkFinderWeapon()
+					{
+						WeaponName = "Shortbow",
+						IsRanged = true,
+						DieSize = 8,
+						DamageModifier = CharacterAttribute.STR
+					}
 				});
 
 			modelBuilder.Entity<Year>()
 				.HasData(new Year()
 				{
-					CurrentYear = 2000
+					CurrentYear = 368
 				});
 		}
 	}

@@ -18,9 +18,9 @@ namespace Steward.Discord.CustomPreconditions
 				db.PlayerCharacters
 					.Include(c => c.House)
 					.ThenInclude(h => h.HouseOwner)
-					.SingleOrDefault(c => c.DiscordUserId == context.User.Id.ToString() && c.IsAlive());
+					.SingleOrDefault(c => c.DiscordUserId == context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (activeCharacter == null)
+			if (activeCharacter == null || !activeCharacter.IsAlive())
 			{
 				return Task.FromResult(
 					PreconditionResult.FromError("You don't have a living character."));

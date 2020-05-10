@@ -147,6 +147,12 @@ namespace Steward.Services
 					{
 						totalBonus += trait.STR;
 					}
+
+					if (character.House != null)
+					{
+						totalBonus += character.House.STR;
+					}
+					
 					baseStat = character.STR;
 					break;
 				case CharacterAttribute.DEX:
@@ -154,6 +160,12 @@ namespace Steward.Services
 					{
 						totalBonus += trait.DEX;
 					}
+
+					if (character.House != null)
+					{
+						totalBonus += character.House.DEX;
+					}
+
 					baseStat = character.DEX;
 					break;
 				case CharacterAttribute.END:
@@ -161,6 +173,12 @@ namespace Steward.Services
 					{
 						totalBonus += trait.END;
 					}
+
+					if (character.House != null)
+					{
+						totalBonus += character.House.END;
+					}
+
 					baseStat = character.END;
 					break;
 				case CharacterAttribute.PER:
@@ -168,6 +186,12 @@ namespace Steward.Services
 					{
 						totalBonus += trait.PER;
 					}
+
+					if (character.House != null)
+					{
+						totalBonus += character.House.PER;
+					}
+
 					baseStat = character.PER;
 					break;
 				case CharacterAttribute.INT:
@@ -175,6 +199,12 @@ namespace Steward.Services
 					{
 						totalBonus += trait.INT;
 					}
+
+					if (character.House != null)
+					{
+						totalBonus += character.House.INT;
+					}
+
 					baseStat = character.INT;
 					break;
 			}

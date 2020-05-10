@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Steward.Migrations
 {
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -32,18 +32,6 @@ namespace Steward.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Houses",
-                columns: table => new
-                {
-                    HouseId = table.Column<string>(nullable: false),
-                    HouseName = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Houses", x => x.HouseId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Traits",
                 columns: table => new
                 {
@@ -53,6 +41,9 @@ namespace Steward.Migrations
                     DEX = table.Column<int>(nullable: false),
                     PER = table.Column<int>(nullable: false),
                     INT = table.Column<int>(nullable: false),
+                    ArmorClassBonus = table.Column<int>(nullable: false),
+                    HealthPoolBonus = table.Column<int>(nullable: false),
+                    AbilityPointBonus = table.Column<int>(nullable: false),
                     Description = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
@@ -148,6 +139,8 @@ namespace Steward.Migrations
                     DEX = table.Column<int>(nullable: false),
                     PER = table.Column<int>(nullable: false),
                     INT = table.Column<int>(nullable: false),
+                    DefaultMeleeWeaponId = table.Column<string>(nullable: true),
+                    DefaultRangedWeaponId = table.Column<string>(nullable: true),
                     InitialAge = table.Column<int>(nullable: false),
                     YearOfBirth = table.Column<int>(nullable: false),
                     YearOfDeath = table.Column<string>(nullable: true),
@@ -158,16 +151,22 @@ namespace Steward.Migrations
                 {
                     table.PrimaryKey("PK_PlayerCharacters", x => x.CharacterId);
                     table.ForeignKey(
+                        name: "FK_PlayerCharacters_ValkFinderWeapons_DefaultMeleeWeaponId",
+                        column: x => x.DefaultMeleeWeaponId,
+                        principalTable: "ValkFinderWeapons",
+                        principalColumn: "WeaponName",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PlayerCharacters_ValkFinderWeapons_DefaultRangedWeaponId",
+                        column: x => x.DefaultRangedWeaponId,
+                        principalTable: "ValkFinderWeapons",
+                        principalColumn: "WeaponName",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_PlayerCharacters_DiscordUsers_DiscordUserId",
                         column: x => x.DiscordUserId,
                         principalTable: "DiscordUsers",
                         principalColumn: "DiscordId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PlayerCharacters_Houses_HouseId",
-                        column: x => x.HouseId,
-                        principalTable: "Houses",
-                        principalColumn: "HouseId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -195,6 +194,34 @@ namespace Steward.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Houses",
+                columns: table => new
+                {
+                    HouseId = table.Column<string>(nullable: false),
+                    HouseName = table.Column<string>(nullable: true),
+                    HouseDescription = table.Column<string>(nullable: true),
+                    STR = table.Column<int>(nullable: false),
+                    DEX = table.Column<int>(nullable: false),
+                    END = table.Column<int>(nullable: false),
+                    PER = table.Column<int>(nullable: false),
+                    INT = table.Column<int>(nullable: false),
+                    ArmorClassBonus = table.Column<int>(nullable: false),
+                    HealthPoolBonus = table.Column<int>(nullable: false),
+                    AbilityPointBonus = table.Column<int>(nullable: false),
+                    HouseOwnerId = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Houses", x => x.HouseId);
+                    table.ForeignKey(
+                        name: "FK_Houses_PlayerCharacters_HouseOwnerId",
+                        column: x => x.HouseOwnerId,
+                        principalTable: "PlayerCharacters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.InsertData(
                 table: "DiscordUsers",
                 columns: new[] { "DiscordId", "CanUseAdminCommands" },
@@ -202,28 +229,49 @@ namespace Steward.Migrations
 
             migrationBuilder.InsertData(
                 table: "Houses",
-                columns: new[] { "HouseId", "HouseName" },
-                values: new object[] { "123", "Bob" });
+                columns: new[] { "HouseId", "AbilityPointBonus", "ArmorClassBonus", "DEX", "END", "HealthPoolBonus", "HouseDescription", "HouseName", "HouseOwnerId", "INT", "PER", "STR" },
+                values: new object[,]
+                {
+                    { "123", 0, 0, 0, 0, 0, "Empty.", "Bob", null, 0, 0, 0 },
+                    { "124", 0, 0, 0, 0, 0, "Empty.", "Shandi Yongshi", null, -1, 0, 1 },
+                    { "125", 0, 0, 1, 0, 0, "Empty.", "Dharmadhatu", null, 0, 0, -1 },
+                    { "126", 0, 0, -1, 1, 0, "Empty.", "Golden Carp", null, 0, 0, 0 },
+                    { "127", 0, 0, 0, 0, 0, "Empty.", "Dafeng", null, 1, 0, -1 },
+                    { "128", 0, 0, 0, 0, 0, "Empty.", "Nishe", null, 0, 1, -1 },
+                    { "129", 0, 0, 1, 0, 0, "Empty.", "Harcaster", null, 0, -1, 0 }
+                });
 
             migrationBuilder.InsertData(
                 table: "Traits",
-                columns: new[] { "Id", "DEX", "Description", "END", "INT", "PER", "STR" },
-                values: new object[] { "123", 0, "Court Education - You have been educated in the writ of law, and the book of justice or whatever.", 0, 0, 1, -1 });
+                columns: new[] { "Id", "AbilityPointBonus", "ArmorClassBonus", "DEX", "Description", "END", "HealthPoolBonus", "INT", "PER", "STR" },
+                values: new object[,]
+                {
+                    { "127", 1, 0, 0, "None - You are a regressive luddite, doomed to be abused for your inhuman resistance to Mother Nature.", 0, 0, -2, 0, 0 },
+                    { "126", 0, 0, -1, "Administrative Education - You have been educated in the managerial, and the clerical.", 0, 0, 1, 0, 0 },
+                    { "123", 0, 0, 0, "Court Education - You have been educated in the writ of law, and the book of justice or whatever.", 0, 0, 0, 1, -1 },
+                    { "124", 0, 0, 0, "Military Education - You have been educated in the martial and military.", 0, 0, -1, 0, 1 },
+                    { "125", 0, 0, -1, "Religious Education - You have been educated in the history of religion and spiritualism.", 1, 0, 0, 0, 0 }
+                });
 
             migrationBuilder.InsertData(
                 table: "ValkFinderWeapons",
                 columns: new[] { "WeaponName", "DamageModifier", "DieSize", "IsRanged" },
-                values: new object[] { "Sword", 0, 8, false });
+                values: new object[,]
+                {
+                    { "Shortbow", 0, 8, true },
+                    { "Sword", 0, 8, false },
+                    { "Dagger", 0, 6, false }
+                });
 
             migrationBuilder.InsertData(
                 table: "Year",
                 column: "CurrentYear",
-                value: 2000);
+                value: 368);
 
             migrationBuilder.InsertData(
                 table: "PlayerCharacters",
-                columns: new[] { "CharacterId", "Bio", "CharacterName", "DEX", "DiscordUserId", "END", "HouseId", "INT", "InitialAge", "PER", "STR", "YearOfBirth", "YearOfDeath" },
-                values: new object[] { "123", "Gotta go fast!", "Maurice Wentworth", 14, "75968535074967552", 8, "123", 8, 20, 8, 12, 1980, null });
+                columns: new[] { "CharacterId", "Bio", "CharacterName", "DEX", "DefaultMeleeWeaponId", "DefaultRangedWeaponId", "DiscordUserId", "END", "HouseId", "INT", "InitialAge", "PER", "STR", "YearOfBirth", "YearOfDeath" },
+                values: new object[] { "123", "Gotta go fast!", "Maurice Wentworth", 14, null, null, "75968535074967552", 8, "123", 8, 20, 8, 12, 1980, null });
 
             migrationBuilder.InsertData(
                 table: "CharacterTraits",
@@ -236,9 +284,26 @@ namespace Steward.Migrations
                 column: "TraitId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Houses_HouseOwnerId",
+                table: "Houses",
+                column: "HouseOwnerId",
+                unique: true,
+                filter: "[HouseOwnerId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MessageRecords_UserId",
                 table: "MessageRecords",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerCharacters_DefaultMeleeWeaponId",
+                table: "PlayerCharacters",
+                column: "DefaultMeleeWeaponId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerCharacters_DefaultRangedWeaponId",
+                table: "PlayerCharacters",
+                column: "DefaultRangedWeaponId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PlayerCharacters_DiscordUserId",
@@ -259,10 +324,22 @@ namespace Steward.Migrations
                 name: "IX_StaffActions_SubmitterId",
                 table: "StaffActions",
                 column: "SubmitterId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_PlayerCharacters_Houses_HouseId",
+                table: "PlayerCharacters",
+                column: "HouseId",
+                principalTable: "Houses",
+                principalColumn: "HouseId",
+                onDelete: ReferentialAction.Restrict);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Houses_PlayerCharacters_HouseOwnerId",
+                table: "Houses");
+
             migrationBuilder.DropTable(
                 name: "CharacterTraits");
 
@@ -276,16 +353,16 @@ namespace Steward.Migrations
                 name: "StaffActions");
 
             migrationBuilder.DropTable(
-                name: "ValkFinderWeapons");
+                name: "Year");
 
             migrationBuilder.DropTable(
-                name: "Year");
+                name: "Traits");
 
             migrationBuilder.DropTable(
                 name: "PlayerCharacters");
 
             migrationBuilder.DropTable(
-                name: "Traits");
+                name: "ValkFinderWeapons");
 
             migrationBuilder.DropTable(
                 name: "DiscordUsers");

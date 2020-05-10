@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Steward.Context;
 using Steward.Context.Models;
@@ -30,8 +31,76 @@ namespace Steward.Discord.GenericCommands
 
 			foreach (var house in houses)
 			{
-				embedBuilder.AddField(house.HouseName, house.HouseDescription);
+				var descriptionField = house.HouseDescription;
+				if (descriptionField.Length > 100)
+				{
+					descriptionField = descriptionField.Substring(0, 100) + "...";
+				}
+				embedBuilder.AddField(house.HouseName, descriptionField);
 			}
+
+			await ReplyAsync(embed: embedBuilder.Build());
+		}
+
+		[Command("house")]
+		public async Task ShowHouseStats(string houseName = null)
+		{
+			House theHouseINeed = null;
+
+			if (houseName != null)
+			{
+				var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+
+				if (house == null)
+				{
+					var houseNameForReply = houseName;
+					if (houseNameForReply.Length > 50)
+					{
+						houseNameForReply = houseNameForReply.Substring(0, 50) + "..";
+					}
+					await ReplyAsync($"Could not find house {houseNameForReply}.");
+					return;
+				}
+
+				theHouseINeed = house;
+			}
+			else
+			{
+				var activeCharacter =
+					_stewardContext.PlayerCharacters
+						.Include(c => c.House)
+						.ThenInclude(h => h.HouseOwner)
+						.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
+
+				if (activeCharacter == null || !activeCharacter.IsAlive())
+				{
+					await ReplyAsync("Could not find a living character.");
+					return;
+				}
+
+				if (activeCharacter.House == null)
+				{
+					await ReplyAsync("Your active character is not part of any house.");
+					return;
+				}
+
+				theHouseINeed = activeCharacter.House;
+			}
+
+			var embedBuilder = new EmbedBuilder();
+
+			var houseOwnerString = theHouseINeed.HouseOwner.CharacterName ?? "None";
+
+			var embedFieldValueString = $"Owner: {houseOwnerString}\n\nDescription:\n" + theHouseINeed.HouseDescription;
+
+			var bonusString =
+				$"\n\nSTR: {theHouseINeed.STR}\nEND: {theHouseINeed.END}\nDEX: {theHouseINeed.DEX}\nPER: {theHouseINeed.PER}\nINT: {theHouseINeed.INT}\nArmor Class Bonus: {theHouseINeed.ArmorClassBonus}"
+				+ $"\nAbility Point Bonus: {theHouseINeed.AbilityPointBonus}\nHealth Pool Bonus: {theHouseINeed.HealthPoolBonus}";
+
+			embedBuilder.AddField("House of " + theHouseINeed.HouseName, embedFieldValueString);
+			embedBuilder.AddField("Bonuses", bonusString);
+
+			embedBuilder.WithColor(Color.Purple);
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
@@ -81,7 +150,7 @@ namespace Steward.Discord.GenericCommands
 				_stewardContext.PlayerCharacters
 					.Include(c => c.House)
 					.ThenInclude(h => h.HouseOwner)
-					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.IsAlive());
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
 			// Doesn't need a null check, already done in RequireHouseOwner
 			var house = activeCharacter.House;
@@ -95,8 +164,33 @@ namespace Steward.Discord.GenericCommands
 			house.HouseDescription = description;
 
 			_stewardContext.Update(house);
+			await _stewardContext.SaveChangesAsync();
 
 			await ReplyAsync("House description changed.");
+		}
+
+		[Command("own")]
+		[RequireStewardPermission]
+		public async Task SetHouseOwner([Remainder] SocketGuildUser mention)
+		{
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.Include(c => c.House)
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
+
+			if (activeCharacter == null || !activeCharacter.IsAlive())
+			{
+				await ReplyAsync($"The user doesn't have a living character.");
+				return;
+			}
+
+			activeCharacter.House.HouseOwner = activeCharacter;
+
+			_stewardContext.Update(activeCharacter.House);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync(
+				$"Owner of house {activeCharacter.House.HouseName} has been set to {activeCharacter.CharacterName}.");
 		}
 
 		[Command("add house")]

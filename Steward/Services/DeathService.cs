@@ -26,10 +26,9 @@ namespace Steward.Services
         {
 	        var activeCharacter =
 		        _context.PlayerCharacters
-			        .Include(c => c.DefaultMeleeWeapon)
-			        .SingleOrDefault(c => c.DiscordUserId == id.ToString() && c.IsAlive());
+			        .SingleOrDefault(c => c.DiscordUserId == id.ToString() && c.YearOfDeath == null);
 
-	        if (activeCharacter == null)
+            if (activeCharacter == null || !activeCharacter.IsAlive())
             {
 	            await channel.SendMessageAsync("This user does not have an active character.");
 	            return;

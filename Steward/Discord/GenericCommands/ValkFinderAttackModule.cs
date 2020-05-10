@@ -22,15 +22,15 @@ namespace Steward.Discord.GenericCommands
 			_stewardContext = c;
 		}
 
-		[Command("melee default")]
+		[Command("equip melee")]
 		public async Task SetDefaultMeleeWeapon(string weaponName)
 		{
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.Include(c => c.DefaultMeleeWeapon)
-					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.IsAlive());
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (activeCharacter == null)
+			if (activeCharacter == null || !activeCharacter.IsAlive())
 			{
 				await ReplyAsync($"You don't have a living character.");
 				return;
@@ -65,11 +65,12 @@ namespace Steward.Discord.GenericCommands
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.Include(c => c.DefaultMeleeWeapon)
+					.Include(c => c.House)
 					.Include(c => c.CharacterTraits)
 					.ThenInclude(ct => ct.Trait)
-					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.IsAlive());
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (activeCharacter == null)
+			if (activeCharacter == null || !activeCharacter.IsAlive())
 			{
 				await ReplyAsync($"You don't have a living character.");
 				return;
@@ -77,7 +78,7 @@ namespace Steward.Discord.GenericCommands
 
 			ValkFinderWeapon valkFinderWeapon = null;
 
-			valkFinderWeapon = activeCharacter.DefaultMeleeWeapon ?? _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName);
+			valkFinderWeapon = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName) ?? activeCharacter.DefaultMeleeWeapon;
 
 			if (valkFinderWeapon == null)
 			{
@@ -96,15 +97,15 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync(embed: message.Build());
 		}
 
-		[Command("ranged default")]
+		[Command("equip ranged")]
 		public async Task SetDefaultRangedWeapon(string weaponName)
 		{
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.Include(c => c.DefaultRangedWeapon)
-					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.IsAlive());
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (activeCharacter == null)
+			if (activeCharacter == null || !activeCharacter.IsAlive())
 			{
 				await ReplyAsync($"You don't have a living character.");
 				return;
@@ -125,7 +126,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			activeCharacter.DefaultMeleeWeapon = valkFinderWeapon;
+			activeCharacter.DefaultRangedWeapon = valkFinderWeapon;
 
 			_stewardContext.PlayerCharacters.Update(activeCharacter);
 			await _stewardContext.SaveChangesAsync();
@@ -145,11 +146,12 @@ namespace Steward.Discord.GenericCommands
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.Include(c => c.DefaultRangedWeapon)
+					.Include(c => c.House)
 					.Include(c => c.CharacterTraits)
 					.ThenInclude(ct => ct.Trait)
-					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.IsAlive());
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (activeCharacter == null)
+			if (activeCharacter == null || !activeCharacter.IsAlive())
 			{
 				await ReplyAsync($"You don't have a living character.");
 				return;

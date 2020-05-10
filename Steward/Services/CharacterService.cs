@@ -62,7 +62,19 @@ namespace Steward.Services
 		{
 			var dexMod = _rollService.GetStatAsModifier(CharacterAttribute.DEX, character);
 
-			var armorClass = 10 + dexMod;
+			var armorClassBonus = 0;
+
+			if (character.House != null)
+			{
+				armorClassBonus = character.House.ArmorClassBonus;
+			}
+
+			foreach (var trait in character.CharacterTraits)
+			{
+				armorClassBonus += trait.Trait.ArmorClassBonus;
+			}
+
+			var armorClass = 10 + dexMod + armorClassBonus;
 
 			//armor shit
 
@@ -91,6 +103,16 @@ namespace Steward.Services
 			{
 				var bonus = endMod * 10;
 				hp += bonus;
+			}
+
+			foreach (var trait in character.CharacterTraits)
+			{
+				hp += trait.Trait.HealthPoolBonus;
+			}
+
+			if (character.House != null)
+			{
+				hp += character.House.HealthPoolBonus;
 			}
 
 			return hp;
