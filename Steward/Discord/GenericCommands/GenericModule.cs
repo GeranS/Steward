@@ -6,11 +6,11 @@ namespace Steward.Discord.GenericCommands
 {
     public class GenericModule : ModuleBase<SocketCommandContext>
     {
-	    private readonly StewardContext _context;
+	    private readonly StewardContext _stewardContext;
 
 	    public GenericModule(StewardContext context)
 	    {
-		    _context = context;
+		    _stewardContext = context;
 	    }
 
         [Command("ping")]

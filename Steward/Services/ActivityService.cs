@@ -13,11 +13,11 @@ namespace Steward.Services
 	{
 		private ArrayList messageCache;
 
-		private readonly StewardContext _context;
+		private readonly StewardContext _stewardContext;
 
 		public ActivityService(StewardContext context)
 		{
-			_context = context;
+			_stewardContext = context;
 
 			var cache = new ArrayList();
 			messageCache = ArrayList.Synchronized(cache);
@@ -35,10 +35,10 @@ namespace Steward.Services
 					Amount = c.Amount
 				};
 
-				_context.MessageRecords.Add(toInsert);
+				_stewardContext.MessageRecords.Add(toInsert);
 			}
 
-			_context.SaveChanges();
+			_stewardContext.SaveChanges();
 		}
 
 		public void AddOneToCache(ulong userId, ulong serverId)

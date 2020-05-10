@@ -14,18 +14,18 @@ namespace Steward.Services
     {
         private readonly DiscordSocketClient _client;
 
-        private readonly StewardContext _context;
+        private readonly StewardContext _stewardContext;
         
         public DeathService(StewardContext stewardContext, DiscordSocketClient client)
         {
             _client = client;
-            _context = stewardContext;
+            _stewardContext = stewardContext;
         }
 
         public async Task Kill(ulong id, bool graveyardMessage, ISocketMessageChannel channel)
         {
 	        var activeCharacter =
-		        _context.PlayerCharacters
+		        _stewardContext.PlayerCharacters
 			        .SingleOrDefault(c => c.DiscordUserId == id.ToString() && c.YearOfDeath == null);
 
             if (activeCharacter == null || !activeCharacter.IsAlive())
@@ -34,9 +34,9 @@ namespace Steward.Services
 	            return;
             }
 
-	        var graveYards = _context.Graveyards.ToList();
+	        var graveYards = _stewardContext.Graveyards.ToList();
 
-	        var year = _context.Year.SingleOrDefault();
+	        var year = _stewardContext.Year.SingleOrDefault();
 
             activeCharacter.YearOfDeath = year.CurrentYear.ToString();
 
@@ -58,8 +58,8 @@ namespace Steward.Services
 	            }
             }
 
-            _context.PlayerCharacters.Update(activeCharacter);
-            _context.SaveChanges();
+            _stewardContext.PlayerCharacters.Update(activeCharacter);
+            _stewardContext.SaveChanges();
         }
     }
 }

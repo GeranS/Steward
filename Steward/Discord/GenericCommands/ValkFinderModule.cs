@@ -18,13 +18,13 @@ namespace Steward.Discord.GenericCommands
 	{
 
 		private readonly RollService _rollService;
-		private readonly StewardContext _context;
+		private readonly StewardContext _stewardContext;
 		private readonly CharacterService _characterService;
 
 		public ValkFinderModule(StewardContext c, RollService r, CharacterService characterService)
 		{
 			_rollService = r;
-			_context = c;
+			_stewardContext = c;
 			_characterService = characterService;
 		}
 		
@@ -37,7 +37,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var discordUser = _context.DiscordUsers
+			var discordUser = _stewardContext.DiscordUsers
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
 				.ThenInclude(ct => ct.Trait)
@@ -68,7 +68,7 @@ namespace Steward.Discord.GenericCommands
 		public async Task SetBio(string bio)
 		{
 			var activeCharacter =
-				_context.PlayerCharacters
+				_stewardContext.PlayerCharacters
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
 			if (activeCharacter == null)
@@ -85,8 +85,8 @@ namespace Steward.Discord.GenericCommands
 
 			activeCharacter.Bio = bio;
 
-			_context.PlayerCharacters.Update(activeCharacter);
-			await _context.SaveChangesAsync();
+			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			await _stewardContext.SaveChangesAsync();
 
 			await ReplyAsync("Bio set.");
 		}
@@ -94,7 +94,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("me")]
 		public async Task Info()
 		{
-			var user = _context.DiscordUsers
+			var user = _stewardContext.DiscordUsers
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.House)
 				.Include(du => du.Characters)
@@ -151,7 +151,7 @@ namespace Steward.Discord.GenericCommands
 			[Summary("Perception")] int per,
 			[Summary("Intelligence")] int intel)
 		{
-			var discordUser = _context.DiscordUsers
+			var discordUser = _stewardContext.DiscordUsers
 				.Include(du => du.Characters)
 				.SingleOrDefault(du => du.DiscordId == Context.User.Id.ToString());
 
@@ -163,7 +163,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var house = _context.Houses.FirstOrDefault(h =>
+			var house = _stewardContext.Houses.FirstOrDefault(h =>
 				h.HouseName == houseName);
 
 			if (house == null)
@@ -192,7 +192,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var year = _context.Year.First();
+			var year = _stewardContext.Year.First();
 			var randomStartingAge = new Random().Next(18, 25);
 			var randomBirthYear = year.CurrentYear - randomStartingAge;
 
@@ -211,8 +211,8 @@ namespace Steward.Discord.GenericCommands
 				INT = intel
 			};
 
-			_context.PlayerCharacters.Add(newCharacter);
-			_context.SaveChanges();
+			_stewardContext.PlayerCharacters.Add(newCharacter);
+			_stewardContext.SaveChanges();
 
 			await ReplyAsync($"Created character with the name {newCharacter.CharacterName}.");
 		}

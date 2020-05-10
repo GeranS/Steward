@@ -11,12 +11,12 @@ namespace Steward.Discord.GenericCommands
 {
 	public class HelpModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly StewardContext _context;
+		private readonly StewardContext _stewardContext;
 		private readonly CommandService _commandService;
 
 		public HelpModule(StewardContext context, CommandService service)
 		{
-			_context = context;
+			_stewardContext = context;
 			_commandService = service;
 		}
 

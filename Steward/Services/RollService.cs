@@ -12,11 +12,11 @@ namespace Steward.Services
 	public class RollService
 	{
 
-		private readonly StewardContext _context;
+		private readonly StewardContext _stewardContext;
 
 		public RollService(StewardContext stewardContext)
 		{
-			_context = stewardContext;
+			_stewardContext = stewardContext;
 		}
 
 		public EmbedBuilder RollMeleeAttack(PlayerCharacter character, ValkFinderWeapon weapon, string attackType)

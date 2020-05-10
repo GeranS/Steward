@@ -16,13 +16,13 @@ namespace Steward.Discord.GenericCommands
 	public class ValkFinderTraitModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly RollService _rollService;
-		private readonly StewardContext _context;
+		private readonly StewardContext _stewardContext;
 		private readonly CharacterService _characterService;
 
 		public ValkFinderTraitModule(StewardContext c, RollService r, CharacterService characterService)
 		{
 			_rollService = r;
-			_context = c;
+			_stewardContext = c;
 			_characterService = characterService;
 		}
 
@@ -41,15 +41,15 @@ namespace Steward.Discord.GenericCommands
 				Description = description
 			};
 
-			await _context.Traits.AddAsync(newTrait);
-			await _context.SaveChangesAsync();
+			await _stewardContext.Traits.AddAsync(newTrait);
+			await _stewardContext.SaveChangesAsync();
 			await ReplyAsync("Trait created.");
 		}
 
 		[Command("trait")]
 		public async Task AddTraitToCharacter(string traitName)
 		{
-			var trait = _context.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
+			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
 
 			if (trait == null)
 			{
@@ -57,7 +57,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var discordUser = _context.DiscordUsers
+			var discordUser = _stewardContext.DiscordUsers
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
 				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
@@ -69,8 +69,8 @@ namespace Steward.Discord.GenericCommands
 				if (characterTraits.Contains(trait))
 				{
 					activeCharacter.CharacterTraits.RemoveAll(ct => ct.Trait == trait);
-					_context.PlayerCharacters.Update(activeCharacter);
-					await _context.SaveChangesAsync();
+					_stewardContext.PlayerCharacters.Update(activeCharacter);
+					await _stewardContext.SaveChangesAsync();
 					await ReplyAsync("Trait has been removed.");
 					return;
 				}
@@ -82,15 +82,15 @@ namespace Steward.Discord.GenericCommands
 				PlayerCharacter = activeCharacter
 			};
 
-			await _context.CharacterTraits.AddAsync(newCharacterTrait);
-			await _context.SaveChangesAsync();
+			await _stewardContext.CharacterTraits.AddAsync(newCharacterTrait);
+			await _stewardContext.SaveChangesAsync();
 			await ReplyAsync("Trait has been added.");
 		}
 
 		[Command("traits")]
 		public async Task ShowTraits()
 		{
-			var traits = await _context.Traits.ToListAsync();
+			var traits = await _stewardContext.Traits.ToListAsync();
 
 			var embedBuilder = new EmbedBuilder()
 				.WithColor(Color.Purple)

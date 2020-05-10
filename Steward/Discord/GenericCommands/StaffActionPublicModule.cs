@@ -12,17 +12,17 @@ namespace Steward.Discord.GenericCommands
 {
 	public class StaffActionPublicModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly StewardContext _context;
+		private readonly StewardContext _stewardContext;
 
 		public StaffActionPublicModule(StewardContext context)
 		{
-			_context = context;
+			_stewardContext = context;
 		}
 
 		[Command("do")]
 		public async Task Do(string description)
 		{
-			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordId == Context.User.Id.ToString());
+			var discordUser = _stewardContext.DiscordUsers.SingleOrDefault(du => du.DiscordId == Context.User.Id.ToString());
 
 			StaffAction action = new StaffAction()
 			{
@@ -32,8 +32,8 @@ namespace Steward.Discord.GenericCommands
 				Submitter = discordUser
 			};
 
-			_context.StaffActions.Add(action);
-			_context.SaveChanges();
+			_stewardContext.StaffActions.Add(action);
+			_stewardContext.SaveChanges();
 
 			await ReplyAsync("Staff action submitted.");
 		}
@@ -41,7 +41,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("actions")]
 		public async Task MyActions()
 		{
-			var activeActions = _context.StaffActions.Where(sa => sa.SubmitterId == Context.User.Id.ToString() && sa.Status != StaffActionStatus.DONE);
+			var activeActions = _stewardContext.StaffActions.Where(sa => sa.SubmitterId == Context.User.Id.ToString() && sa.Status != StaffActionStatus.DONE);
 
 			var embedBuilder = new EmbedBuilder
 			{
