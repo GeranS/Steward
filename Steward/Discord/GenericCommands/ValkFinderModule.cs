@@ -163,13 +163,18 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var house = _stewardContext.Houses.FirstOrDefault(h =>
-				h.HouseName == houseName);
+			House house = null;
 
-			if (house == null)
+			if (houseName != "null")
 			{
-				await ReplyAsync($"Could not find house '{houseName}'.");
-				return;
+				house = _stewardContext.Houses.FirstOrDefault(h =>
+					h.HouseName == houseName);
+
+				if (house == null)
+				{
+					await ReplyAsync($"Could not find house '{houseName}'.");
+					return;
+				}
 			}
 
 			var totalPoints = str + dex + end + per + intel;
