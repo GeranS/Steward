@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Steward.Context;
@@ -92,15 +93,30 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("me")]
-		public async Task Info()
+		public async Task Info([Remainder]SocketGuildUser mention = null)
 		{
-			var user = _stewardContext.DiscordUsers
-				.Include(du => du.Characters)
-				.ThenInclude(c => c.House)
-				.Include(du => du.Characters)
-				.ThenInclude(c => c.CharacterTraits)
-				.ThenInclude(ct => ct.Trait)
-				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+			DiscordUser user = null;
+
+			if (mention != null)
+			{
+				user = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.ThenInclude(c => c.House)
+					.Include(du => du.Characters)
+					.ThenInclude(c => c.CharacterTraits)
+					.ThenInclude(ct => ct.Trait)
+					.SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
+			}
+			else
+			{
+				user = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.ThenInclude(c => c.House)
+					.Include(du => du.Characters)
+					.ThenInclude(c => c.CharacterTraits)
+					.ThenInclude(ct => ct.Trait)
+					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+			}
 
 			var activeCharacter = user.Characters.FirstOrDefault(c => c.IsAlive());
 
@@ -127,6 +143,11 @@ namespace Steward.Discord.GenericCommands
 				{
 					traitsListString += trait.Description + "\n";
 				}
+			}
+
+			if (traitsListString == ".")
+			{
+				traitsListString = "None.";
 			}
 
 			embedBuilder.AddField(_characterService.ComposeStatEmbedField(activeCharacter));
