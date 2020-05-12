@@ -12,7 +12,9 @@ namespace Steward.Context.Models
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public long StaffActionId { get; set; }
 
+		public string ActionTitle { get; set; }
 		public string ActionDescription { get; set; }
+		public string ActionResponse { get; set; }
 
 		public StaffActionStatus Status { get; set; }
 

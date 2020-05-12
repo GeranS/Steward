@@ -17,7 +17,6 @@ namespace Steward.Discord.GenericCommands
 {
 	public class ValkFinderModule : ModuleBase<SocketCommandContext>
 	{
-
 		private readonly RollService _rollService;
 		private readonly StewardContext _stewardContext;
 		private readonly CharacterService _characterService;
