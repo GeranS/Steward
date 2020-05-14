@@ -89,7 +89,7 @@ namespace Steward.Discord.GenericCommands
 
 			var embedBuilder = new EmbedBuilder();
 
-			var houseOwnerString = theHouseINeed.HouseOwner.CharacterName ?? "None";
+			var houseOwnerString = theHouseINeed.HouseOwner != null ? theHouseINeed.HouseOwner.CharacterName : "None";
 
 			var embedFieldValueString = $"Owner: {houseOwnerString}\n\nDescription:\n" + theHouseINeed.HouseDescription;
 
@@ -184,6 +184,12 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
+			if (activeCharacter.House == null)
+			{
+				await ReplyAsync("Character is not part of any house.");
+				return;
+			}
+
 			activeCharacter.House.HouseOwner = activeCharacter;
 
 			_stewardContext.Update(activeCharacter.House);
@@ -215,6 +221,60 @@ namespace Steward.Discord.GenericCommands
 			await _stewardContext.SaveChangesAsync();
 
 			await ReplyAsync($"House with the name {name} has been created.");
+		}
+
+		[Command("move house")]
+		[RequireStewardPermission]
+		public async Task MoveHouse(string houseName, [Remainder] SocketGuildUser mention)
+		{
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.Include(c => c.House)
+					.ThenInclude(h => h.HouseOwner)
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("The player doesn't have a living character.");
+				return;
+			}
+
+			if (activeCharacter.House != null)
+			{
+				if (activeCharacter == activeCharacter.House.HouseOwner)
+				{
+					activeCharacter.House.HouseOwner = null;
+					activeCharacter.House.HouseOwnerId = null;
+				}
+			}
+
+			if (houseName == "null")
+			{
+				activeCharacter.House = null;
+				activeCharacter.HouseId = null;
+
+				_stewardContext.PlayerCharacters.Update(activeCharacter);
+				await _stewardContext.SaveChangesAsync();
+
+				await ReplyAsync("Character removed from house.");
+			}
+			else
+			{
+				var newHouse = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+
+				if (newHouse == null)
+				{
+					await ReplyAsync("Could not find house.");
+					return;
+				}
+
+				activeCharacter.House = newHouse;
+
+				_stewardContext.PlayerCharacters.Update(activeCharacter);
+				await _stewardContext.SaveChangesAsync();
+
+				await ReplyAsync("Character moved to new house.");
+			}
 		}
 	}
 }

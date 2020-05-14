@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Steward.Migrations
 {
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -69,12 +69,13 @@ namespace Steward.Migrations
                 name: "Year",
                 columns: table => new
                 {
+                    StupidId = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CurrentYear = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Year", x => x.CurrentYear);
+                    table.PrimaryKey("PK_Year", x => x.StupidId);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,7 +106,9 @@ namespace Steward.Migrations
                 {
                     StaffActionId = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    ActionTitle = table.Column<string>(nullable: true),
                     ActionDescription = table.Column<string>(nullable: true),
+                    ActionResponse = table.Column<string>(nullable: true),
                     Status = table.Column<int>(nullable: false),
                     SubmitterId = table.Column<string>(nullable: true),
                     AssignedToId = table.Column<string>(nullable: true)
@@ -265,8 +268,8 @@ namespace Steward.Migrations
 
             migrationBuilder.InsertData(
                 table: "Year",
-                column: "CurrentYear",
-                value: 368);
+                columns: new[] { "StupidId", "CurrentYear" },
+                values: new object[] { 1, 368 });
 
             migrationBuilder.InsertData(
                 table: "PlayerCharacters",

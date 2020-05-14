@@ -125,7 +125,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			//var year = _context.Year.SingleOrDefault();
+			var year = _stewardContext.Year.SingleOrDefault();
 
 			var embedBuilder = new EmbedBuilder
 			{
@@ -138,6 +138,7 @@ namespace Steward.Discord.GenericCommands
 
 			if (characterTraits.Count > 0)
 			{
+				traitsListString = "";
 				foreach (var trait in characterTraits)
 				{
 					traitsListString += trait.Description + "\n";
@@ -149,7 +150,7 @@ namespace Steward.Discord.GenericCommands
 				traitsListString = "None.";
 			}
 
-			embedBuilder.AddField(_characterService.ComposeStatEmbedField(activeCharacter));
+			embedBuilder.AddField(_characterService.ComposeStatEmbedField(activeCharacter, year));
 
 			_ = embedBuilder.AddField("Traits", traitsListString)
 				.WithColor(Color.Purple);
@@ -221,20 +222,41 @@ namespace Steward.Discord.GenericCommands
 			var randomStartingAge = new Random().Next(18, 25);
 			var randomBirthYear = year.CurrentYear - randomStartingAge;
 
-			var newCharacter = new PlayerCharacter()
+			PlayerCharacter newCharacter = null;
+
+			if (house != null)
 			{
-				CharacterName = name,
-				House = house,
-				HouseId = house.HouseId,
-				DiscordUser = discordUser,
-				DiscordUserId = discordUser.DiscordId,
-				YearOfBirth = randomBirthYear,
-				STR = str,
-				DEX = dex,
-				END = end,
-				PER = per,
-				INT = intel
-			};
+				newCharacter = new PlayerCharacter()
+				{
+					CharacterName = name,
+					House = house,
+					HouseId = house.HouseId,
+					DiscordUser = discordUser,
+					DiscordUserId = discordUser.DiscordId,
+					YearOfBirth = randomBirthYear,
+					STR = str,
+					DEX = dex,
+					END = end,
+					PER = per,
+					INT = intel
+				};
+			}
+			else
+			{
+				newCharacter = new PlayerCharacter()
+				{
+					CharacterName = name,
+					DiscordUser = discordUser,
+					DiscordUserId = discordUser.DiscordId,
+					YearOfBirth = randomBirthYear,
+					STR = str,
+					DEX = dex,
+					END = end,
+					PER = per,
+					INT = intel
+				};
+			}
+			
 
 			_stewardContext.PlayerCharacters.Add(newCharacter);
 			_stewardContext.SaveChanges();
@@ -260,16 +282,33 @@ namespace Steward.Discord.GenericCommands
 			{
 				characters.Remove(activeCharacter);
 
-				embedBuilder.AddField($"{activeCharacter.GetAge(year.CurrentYear)}",
-					$"{activeCharacter.CharacterName} of House {activeCharacter.House.HouseName}");
+				if (activeCharacter.House != null)
+				{
+					embedBuilder.AddField($"{activeCharacter.GetAge(year.CurrentYear)}",
+						$"{activeCharacter.CharacterName} of House {activeCharacter.House.HouseName}");
+				}
+				else
+				{
+					embedBuilder.AddField($"{activeCharacter.GetAge(year.CurrentYear)}",
+						$"{activeCharacter.CharacterName}");
+				}
 			}
 
 			var sortedCharacters = characters.OrderBy(c => c.YearOfBirth);
 
 			foreach (var character in sortedCharacters)
 			{
-				embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
-					$"{character.CharacterName} of House {activeCharacter.House.HouseName}");
+				
+				if (activeCharacter.House != null)
+				{
+					embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
+						$"{character.CharacterName} of House {activeCharacter.House.HouseName}");
+				}
+				else
+				{
+					embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
+						$"{character.CharacterName}");
+				}
 			}
 
 			await ReplyAsync(embed: embedBuilder.Build());

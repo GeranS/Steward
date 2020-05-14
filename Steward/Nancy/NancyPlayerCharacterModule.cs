@@ -14,11 +14,17 @@ namespace Steward.Nancy
 		public NancyPlayerCharacterModule()
 		{
 			Get("all", _ => GetAll());
+			Get("character", (id) => GetOneById(id));
 		}
 
 		public PlayerCharacter GetAll()
 		{
 			return new StewardContext().PlayerCharacters.ToList()[0];
+		}
+
+		public PlayerCharacter GetOneById(string id)
+		{
+			return new StewardContext().PlayerCharacters.SingleOrDefault(pc => pc.CharacterId == id);
 		}
 	}
 }

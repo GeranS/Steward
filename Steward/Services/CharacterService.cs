@@ -16,7 +16,7 @@ namespace Steward.Services
 			_rollService = rollService;
 		}
 
-		public EmbedFieldBuilder ComposeStatEmbedField(PlayerCharacter character)
+		public EmbedFieldBuilder ComposeStatEmbedField(PlayerCharacter character, Year year)
 		{
 			var strString = $"STR: {_rollService.CalculateStat(CharacterAttribute.STR, character)}"
 							+ $"({_rollService.GetStatAsModifier(CharacterAttribute.STR, character)})";
@@ -38,7 +38,7 @@ namespace Steward.Services
 				return new EmbedFieldBuilder()
 				{
 					IsInline = false,
-					Name = $"{character.CharacterName}",
+					Name = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)})",
 					Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{healthPoolString}"
 				};
 			}
@@ -46,7 +46,7 @@ namespace Steward.Services
 			var embedFieldBuilder = new EmbedFieldBuilder()
 			{
 				IsInline = false,
-				Name = $"{character.CharacterName} of House {character.House.HouseName}",
+				Name = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)}) of House {character.House.HouseName}",
 				Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{healthPoolString}"
 			};
 

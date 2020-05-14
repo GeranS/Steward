@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
 using Steward.Context;
 using Steward.Context.Models;
+using Steward.Discord.CustomPreconditions;
 using Steward.Services;
 
 namespace Steward.Discord.GenericCommands
@@ -176,6 +178,74 @@ namespace Steward.Discord.GenericCommands
 			var message = _rollService.RollRangedAttack(activeCharacter, valkFinderWeapon, range);
 
 			await ReplyAsync(embed: message.Build());
+		}
+
+		[Command("weapons")]
+		public async Task WeaponList()
+		{
+			var embedBuilder = new EmbedBuilder();
+
+			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList();
+
+			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
+
+			foreach (var weapon in sortedValkFinderWeapons)
+			{
+				if (weapon.IsRanged)
+				{
+					embedBuilder.AddField(weapon.WeaponName, $"1d{weapon.DieSize} ranged");
+				}
+				else
+				{
+					embedBuilder.AddField(weapon.WeaponName, $"1d{weapon.DieSize} melee");
+				}
+			}
+
+			await ReplyAsync(embed: embedBuilder.Build());
+		}
+
+		[Command("add weapon")]
+		[RequireStewardPermission]
+		public async Task AddWeapon(string name, string rangedOrMelee, int dieSize)
+		{
+			if (name.Length > 100)
+			{
+				await ReplyAsync("Weapon name can't be longer than 100 characters.");
+				return;
+			}
+
+			if (rangedOrMelee != "ranged" && rangedOrMelee != "melee")
+			{
+				await ReplyAsync("Weapon has to be either melee or ranged.");
+				return;
+			}
+
+			if (dieSize < 2 || dieSize > 20)
+			{
+				await ReplyAsync("The die size has to be within the 2 to 20 range.");
+			}
+
+			var doesWeaponAlreadyExist =
+				_stewardContext.ValkFinderWeapons.SingleOrDefault(vfw => vfw.WeaponName == name);
+
+			if (doesWeaponAlreadyExist != null)
+			{
+				await ReplyAsync("Weapon already exists.");
+				return;
+			}
+
+			var newWeapon = new ValkFinderWeapon()
+			{
+				WeaponName = name,
+				DieSize = dieSize,
+				IsRanged = rangedOrMelee == "ranged",
+				DamageModifier = CharacterAttribute.STR
+			};
+
+			_stewardContext.ValkFinderWeapons.Add(newWeapon);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Weapon added.");
 		}
 	}
 }

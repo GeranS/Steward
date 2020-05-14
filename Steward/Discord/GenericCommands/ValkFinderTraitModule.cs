@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Steward.Context;
 using Steward.Context.Models;
@@ -29,7 +30,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("add trait")]
 		[Summary("Example: -1 0 0 1 0 \"Court Education - You have been educated in the writ of law, and the book of justice or whatever.\"")]
 		[RequireStewardPermission]
-		public async Task CreateTrait(int str, int end, int dex, int per, int intel, string description)
+		public async Task CreateTrait(int str, int end, int dex, int per, int intel, int ac, int ap, int hp, string description)
 		{
 			var newTrait = new Trait()
 			{
@@ -38,6 +39,9 @@ namespace Steward.Discord.GenericCommands
 				DEX = dex,
 				PER = per,
 				INT = intel,
+				ArmorClassBonus = ac,
+				AbilityPointBonus = ap,
+				HealthPoolBonus = hp,
 				Description = description
 			};
 
@@ -47,7 +51,8 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("trait")]
-		public async Task AddTraitToCharacter(string traitName)
+		[RequireStewardPermission]
+		public async Task AddTraitToCharacter(string traitName, [Remainder]SocketGuildUser mention)
 		{
 			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
 
@@ -60,20 +65,18 @@ namespace Steward.Discord.GenericCommands
 			var discordUser = _stewardContext.DiscordUsers
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
-				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+				.SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
 
 			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
-			if (activeCharacter.CharacterTraits.Select(ct => ct.Trait) is List<Trait> characterTraits)
+			var traitAlreadyExistsList = activeCharacter.CharacterTraits.Where(ct => ct.Trait == trait);
+			if (traitAlreadyExistsList.Count() != 0)
 			{
-				if (characterTraits.Contains(trait))
-				{
-					activeCharacter.CharacterTraits.RemoveAll(ct => ct.Trait == trait);
-					_stewardContext.PlayerCharacters.Update(activeCharacter);
-					await _stewardContext.SaveChangesAsync();
-					await ReplyAsync("Trait has been removed.");
-					return;
-				}
+				activeCharacter.CharacterTraits.Remove(traitAlreadyExistsList.First());
+				_stewardContext.PlayerCharacters.Update(activeCharacter);
+				await _stewardContext.SaveChangesAsync();
+				await ReplyAsync("Trait has been removed.");
+				return;
 			}
 
 			var newCharacterTrait = new CharacterTrait()
@@ -120,6 +123,19 @@ namespace Steward.Discord.GenericCommands
 				{
 					bonusString += $"INT({trait.INT}) ";
 				}
+				if (trait.ArmorClassBonus != 0)
+				{
+					bonusString += $"AC({trait.ArmorClassBonus}) ";
+				}
+				if (trait.AbilityPointBonus != 0)
+				{
+					bonusString += $"AP({trait.AbilityPointBonus}) ";
+				}
+				if (trait.HealthPoolBonus != 0)
+				{
+					bonusString += $"HP({trait.HealthPoolBonus}) ";
+				}
+
 				embedBuilder.AddField(trait.Description, bonusString, false);
 			}
 

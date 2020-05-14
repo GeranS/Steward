@@ -308,6 +308,12 @@ namespace Steward.Migrations
                     b.Property<string>("ActionDescription")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ActionResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ActionTitle")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("AssignedToId")
                         .HasColumnType("nvarchar(450)");
 

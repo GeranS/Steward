@@ -90,5 +90,73 @@ namespace Steward.Discord.AdminCommands
             await _deathService.Kill(mention.Id, true, Context.Channel);
             await ReplyAsync("Press F.");
         }
+
+        [Command("set age")]
+        [RequireStewardPermission]
+        public async Task SetAge(int newAge, [Remainder] SocketGuildUser mention)
+        {
+	        if (newAge < 18)
+	        {
+		        await ReplyAsync("Can't set age below 18");
+		        return;
+	        }
+
+	        if (newAge > 100)
+	        {
+		        await ReplyAsync("Can't set age over 100");
+		        return;
+	        }
+
+	        var activeCharacter =
+		        _stewardContext.PlayerCharacters
+			        .SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
+
+	        var year = _stewardContext.Year.First();
+
+	        activeCharacter.InitialAge = newAge;
+
+	        var newYearOfBirth = year.CurrentYear - newAge;
+
+            activeCharacter.YearOfBirth = newYearOfBirth;
+
+            _stewardContext.PlayerCharacters.Update(activeCharacter);
+            await _stewardContext.SaveChangesAsync();
+        }
+
+        [Command("op")]
+        [RequireStewardPermission]
+        public async Task OpUser([Remainder] SocketGuildUser mention)
+        {
+	        var discordUser = _stewardContext.DiscordUsers.SingleOrDefault(du => du.DiscordId == mention.Id.ToString());
+
+	        if (discordUser.CanUseAdminCommands)
+	        {
+		        await ReplyAsync("User is already an admin.");
+                return;
+	        }
+
+	        discordUser.CanUseAdminCommands = true;
+
+	        _stewardContext.DiscordUsers.Update(discordUser);
+	        await _stewardContext.SaveChangesAsync();
+        }
+
+        [Command("deop")]
+        [RequireStewardPermission]
+        public async Task DeOpUser([Remainder] SocketGuildUser mention)
+        {
+	        var discordUser = _stewardContext.DiscordUsers.SingleOrDefault(du => du.DiscordId == mention.Id.ToString());
+
+	        if (!discordUser.CanUseAdminCommands)
+	        {
+		        await ReplyAsync("User is not an admin.");
+                return;
+	        }
+
+            discordUser.CanUseAdminCommands = false;
+
+	        _stewardContext.DiscordUsers.Update(discordUser);
+	        await _stewardContext.SaveChangesAsync();
+        }
     }
 }
