@@ -223,6 +223,7 @@ namespace Steward.Discord.GenericCommands
 			if (dieSize < 2 || dieSize > 20)
 			{
 				await ReplyAsync("The die size has to be within the 2 to 20 range.");
+				return;
 			}
 
 			var doesWeaponAlreadyExist =

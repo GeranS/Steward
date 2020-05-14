@@ -111,6 +111,12 @@ namespace Steward.Discord.AdminCommands
 		        _stewardContext.PlayerCharacters
 			        .SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
 
+	        if (activeCharacter == null)
+	        {
+		        await ReplyAsync("Could not find a living character.");
+		        return;
+	        }
+
 	        var year = _stewardContext.Year.First();
 
 	        activeCharacter.InitialAge = newAge;
@@ -121,13 +127,21 @@ namespace Steward.Discord.AdminCommands
 
             _stewardContext.PlayerCharacters.Update(activeCharacter);
             await _stewardContext.SaveChangesAsync();
-        }
+
+            await ReplyAsync("Age changed.");
+		}
 
         [Command("op")]
         [RequireStewardPermission]
         public async Task OpUser([Remainder] SocketGuildUser mention)
         {
 	        var discordUser = _stewardContext.DiscordUsers.SingleOrDefault(du => du.DiscordId == mention.Id.ToString());
+
+	        if (discordUser == null)
+	        {
+		        await ReplyAsync("User does not have a profile.");
+                return;
+	        }
 
 	        if (discordUser.CanUseAdminCommands)
 	        {
@@ -139,6 +153,8 @@ namespace Steward.Discord.AdminCommands
 
 	        _stewardContext.DiscordUsers.Update(discordUser);
 	        await _stewardContext.SaveChangesAsync();
+
+	        await ReplyAsync("User has been made an admin.");
         }
 
         [Command("deop")]
@@ -157,6 +173,8 @@ namespace Steward.Discord.AdminCommands
 
 	        _stewardContext.DiscordUsers.Update(discordUser);
 	        await _stewardContext.SaveChangesAsync();
+
+	        await ReplyAsync("Admin privileges have been removed.");
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Steward.Discord.CustomPreconditions
 					PreconditionResult.FromError("Your character is not part of a house."));
 			}
 
-			if (activeCharacter.CharacterId != activeCharacter.House.HouseOwner.CharacterId)
+			if (activeCharacter.House.HouseOwner == null || activeCharacter.CharacterId != activeCharacter.House.HouseOwner.CharacterId)
 			{
 				return Task.FromResult(
 					PreconditionResult.FromError("You are not the owner of this house."));

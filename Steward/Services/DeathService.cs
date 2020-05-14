@@ -50,8 +50,9 @@ namespace Steward.Services
 		            {
 			            await graveyardChannel.SendMessageAsync(message);
                     }
-		            catch
+		            catch(NullReferenceException e)
 		            {
+                        Console.WriteLine(e.StackTrace);
                         //nothing, I just don't want it to crash the command
 		            }
 	            }

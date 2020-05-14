@@ -51,8 +51,7 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("trait")]
-		[RequireStewardPermission]
-		public async Task AddTraitToCharacter(string traitName, [Remainder]SocketGuildUser mention)
+		public async Task AddTraitToCharacter(string traitName, [Remainder]SocketGuildUser mention = null)
 		{
 			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
 
@@ -62,12 +61,58 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var discordUser = _stewardContext.DiscordUsers
-				.Include(du => du.Characters)
-				.ThenInclude(c => c.CharacterTraits)
-				.SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
+			DiscordUser discordUser = null;
 
-			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
+			PlayerCharacter activeCharacter = null;
+
+			if (mention == null)
+			{
+				discordUser = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.ThenInclude(c => c.CharacterTraits)
+					.ThenInclude(ct => ct.Trait)
+					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+				activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
+
+				if (activeCharacter == null)
+				{
+					await ReplyAsync("Could not find a living character.");
+					return;
+				}
+
+				if (activeCharacter.CharacterTraits.Count > 0 && !discordUser.CanUseAdminCommands && mention == null)
+				{
+					await ReplyAsync(
+						"You may only add one trait to yourself, if you need additional traits or need a trait removed, please contact an admin or Major GM.");
+					return;
+				}
+			}
+			else
+			{
+				discordUser = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.ThenInclude(c => c.CharacterTraits)
+					.ThenInclude(ct => ct.Trait)
+					.SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
+
+				activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
+
+				if (activeCharacter == null)
+				{
+					await ReplyAsync("Could not find a living character.");
+					return;
+				}
+
+				var commandUser =
+					_stewardContext.DiscordUsers.SingleOrDefault(du => du.DiscordId == Context.User.Id.ToString());
+
+				if (!commandUser.CanUseAdminCommands)
+				{
+					await ReplyAsync("You don't have the required permissions to use this command.");
+					return;
+				}
+			}
 
 			var traitAlreadyExistsList = activeCharacter.CharacterTraits.Where(ct => ct.Trait == trait);
 			if (traitAlreadyExistsList.Count() != 0)

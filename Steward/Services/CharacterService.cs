@@ -31,6 +31,8 @@ namespace Steward.Services
 
 			var armorClassString = $"AC: {CalculateMaximumArmorClass(character)}";
 
+			var abilityPointString = $"AP: {CalculateMaximumAbilityPoint(character)}";
+
 			var healthPoolString = $"HP: {CalculateMaximumHealthPool(character)}";
 
 			if (character.House == null)
@@ -39,7 +41,7 @@ namespace Steward.Services
 				{
 					IsInline = false,
 					Name = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)})",
-					Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{healthPoolString}"
+					Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{abilityPointString}\n{healthPoolString}"
 				};
 			}
 
@@ -47,7 +49,7 @@ namespace Steward.Services
 			{
 				IsInline = false,
 				Name = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)}) of House {character.House.HouseName}",
-				Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{healthPoolString}"
+				Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{abilityPointString}\n{healthPoolString}"
 			};
 
 			return embedFieldBuilder;
@@ -79,6 +81,30 @@ namespace Steward.Services
 			//armor shit
 
 			return armorClass;
+		}
+
+		public int CalculateMaximumAbilityPoint(PlayerCharacter character)
+		{
+			var hasDexBonus = _rollService.GetStatAsModifier(CharacterAttribute.DEX, character) > 1;
+
+			var traitBonus = 0;
+
+			if (character.House != null)
+			{
+				traitBonus = character.House.ArmorClassBonus;
+			}
+
+			foreach (var trait in character.CharacterTraits)
+			{
+				traitBonus += trait.Trait.AbilityPointBonus;
+			}
+
+			if (hasDexBonus)
+			{
+				traitBonus++;
+			}
+
+			return traitBonus + 6;
 		}
 
 		/// <summary>

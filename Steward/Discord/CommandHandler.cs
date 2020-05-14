@@ -36,13 +36,13 @@ namespace Steward.Discord
 
 			int argPos = 0;
 
+			//checks if the user has a profile
+			NewProfile(message.Author.Id);
+
 			if (!(message.HasCharPrefix('&', ref argPos) ||
 				message.HasMentionPrefix(_client.CurrentUser, ref argPos)) ||
 				message.Author.IsBot)
 				return;
-
-			//checks if the user has a profile
-			NewProfile(message.Author.Id);
 
 			var context = new SocketCommandContext(_client, message);
 
