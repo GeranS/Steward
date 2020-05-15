@@ -523,7 +523,7 @@ namespace Steward.Migrations
                         new
                         {
                             StupidId = 1,
-                            CurrentYear = 368
+                            CurrentYear = 372
                         });
                 });
 

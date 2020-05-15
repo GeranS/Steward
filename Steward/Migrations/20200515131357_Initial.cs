@@ -269,7 +269,7 @@ namespace Steward.Migrations
             migrationBuilder.InsertData(
                 table: "Year",
                 columns: new[] { "StupidId", "CurrentYear" },
-                values: new object[] { 1, 368 });
+                values: new object[] { 1, 372 });
 
             migrationBuilder.InsertData(
                 table: "PlayerCharacters",

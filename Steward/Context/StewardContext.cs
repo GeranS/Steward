@@ -7,7 +7,7 @@ namespace Steward.Context
 	{
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer($"Server={Properties.Resources.dbIP};Database=stewardtest;User Id={Properties.Resources.sqlUsername};Password={Properties.Resources.sqlpassword};");
+			optionsBuilder.UseSqlServer($"Server={Properties.Resources.dbIP};Database=steward;User Id={Properties.Resources.sqlUsername};Password={Properties.Resources.sqlpassword};");
 		}
 
 		public DbSet<CharacterTrait> CharacterTraits { get; set; } //linking table
@@ -220,7 +220,7 @@ namespace Steward.Context
 				.HasData(new Year()
 				{
 					StupidId = 1,
-					CurrentYear = 368
+					CurrentYear = 372
 				});
 		}
 	}
