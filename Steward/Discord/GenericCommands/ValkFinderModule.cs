@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -262,6 +263,41 @@ namespace Steward.Discord.GenericCommands
 			_stewardContext.SaveChanges();
 
 			await ReplyAsync($"Created character with the name {newCharacter.CharacterName}.");
+		}
+
+		[Command("admin history")]
+		[RequireStewardPermission]
+		public async Task ShowCharacterListWithId([Remainder]SocketGuildUser mention)
+		{
+			var discordUser = _stewardContext.DiscordUsers
+				.Include(du => du.Characters)
+				.SingleOrDefault(du => du.DiscordId == mention.Id.ToString());
+
+			if (discordUser == null)
+			{
+				await ReplyAsync("User does not have a profile.");
+				return;
+			}
+
+			if (discordUser.Characters.Count == 0)
+			{
+				await ReplyAsync("User has no characters.");
+				return;
+			}
+
+			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple);
+
+			var stringBuilder = new StringBuilder();
+
+			foreach (var character in discordUser.Characters)
+			{
+				stringBuilder.AppendLine(
+					$"{character.CharacterId} - {character.CharacterName} - Is alive: {character.IsAlive()}");
+			}
+
+			embedBuilder.AddField("Characters", stringBuilder.ToString());
+
+			await ReplyAsync(embed: embedBuilder.Build());
 		}
 
 		[Command("history")]
