@@ -57,7 +57,7 @@ namespace Steward.Discord.GenericCommands
 
 			if (trait == null)
 			{
-				await ReplyAsync($"Could not find a trait with the name {trait}.");
+				await ReplyAsync($"Could not find a trait with the name {traitName}.");
 				return;
 			}
 
