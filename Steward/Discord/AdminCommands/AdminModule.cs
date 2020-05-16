@@ -202,28 +202,20 @@ namespace Steward.Discord.AdminCommands
 
 		[Command("revive")]
 		[RequireStewardPermission]
-		public async Task revive([Remainder]SocketGuildUser mention)
+		public async Task revive(string characterId)
 		{
 
 
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
-					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath==null);
-
-			if (activeCharacter != null)
-			{
-				await ReplyAsync("Can not revive since player already has a living character.");
-				return;
-			}
-
-			activeCharacter =
-				_stewardContext.PlayerCharacters
-					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString());
+					.SingleOrDefault(c => c.CharacterId == characterId && c.YearOfDeath!=null);
 
 			if (activeCharacter == null)
 			{
-				await ReplyAsync("No existing character found.");
+				await ReplyAsync("Character is either still alive or has not been found.");
+				return;
 			}
+
 
 			activeCharacter.YearOfDeath = null;
 
