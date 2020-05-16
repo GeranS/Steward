@@ -187,9 +187,9 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
 
-		[Command("change trait")]
+		[Command("change trait stats")]
 		[RequireStewardPermission]
-		public async Task ChangeTrait(string traitName, int str, int end, int dex, int per, int intel, int ac, int ap, int hp)
+		public async Task ChangeTraitStat(string traitName, int str, int end, int dex, int per, int intel, int ac, int ap, int hp)
 		{
 			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
 
@@ -211,7 +211,27 @@ namespace Steward.Discord.GenericCommands
 			_stewardContext.Traits.Update(trait);
 			await _stewardContext.SaveChangesAsync();
 
-			await ReplyAsync("Trait Changed!");
+			await ReplyAsync("Stats of Trait Changed!");
+		}
+
+		[Command("change trait desc")]
+		[RequireStewardPermission]
+		public async Task ChangeTraitDesc(string traitName, string description)
+		{
+			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
+
+			if (trait == null)
+			{
+				await ReplyAsync($"Could not find a trait with the name {traitName}.");
+				return;
+			}
+
+			trait.Description = description;
+
+			_stewardContext.Traits.Update(trait);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Description of Trait Changed!");
 		}
 	}
 }
