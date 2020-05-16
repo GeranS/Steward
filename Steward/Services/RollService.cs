@@ -50,8 +50,18 @@ namespace Steward.Services
 
 			var attackRoll = rnd.Next(1, 20) + strMod + dexMod + attackTypeHitBonus;
 
+			if (attackRoll < 0)
+			{
+				attackRoll = 0;
+			}
+
 			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
 			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus + attackTypeDamageBonus;
+
+			if (damageRoll < 0)
+			{
+				damageRoll = 0;
+			}
 
 			var attackRollString = $"1d20 + {strMod + dexMod} = {attackRoll}";
 			if (attackTypeHitBonus != 0)
@@ -84,9 +94,18 @@ namespace Steward.Services
 
 			var attackRoll = rnd.Next(1, 20) + perMod + dexMod + rangePenalty;
 
+			if (attackRoll < 0)
+			{
+				attackRoll = 0;
+			}
+
 			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
 			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus;
 
+			if (damageRoll < 0)
+			{
+				damageRoll = 0;
+			}
 			var attackRollString = $"1d20 + {perMod + dexMod} - {rangePenalty*-1} = {attackRoll}";
 			var damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} = {damageRoll}";
 
