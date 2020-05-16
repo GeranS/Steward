@@ -186,5 +186,32 @@ namespace Steward.Discord.GenericCommands
 
 			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
+
+		[Command("change trait")]
+		[RequireStewardPermission]
+		public async Task ChangeTrait(string traitName, int str, int end, int dex, int per, int intel, int ac, int ap, int hp)
+		{
+			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
+
+			if (trait == null)
+			{
+				await ReplyAsync($"Could not find a trait with the name {traitName}.");
+				return;
+			}
+
+			trait.STR = str;
+			trait.END = end;
+			trait.DEX = dex;
+			trait.PER = per;
+			trait.INT = intel;
+			trait.ArmorClassBonus = ac;
+			trait.AbilityPointBonus = ap;
+			trait.HealthPoolBonus = hp;
+
+			_stewardContext.Traits.Update(trait);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Trait Changed!");
+		}
 	}
 }
