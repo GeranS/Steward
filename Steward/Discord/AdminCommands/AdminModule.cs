@@ -19,10 +19,13 @@ namespace Steward.Discord.AdminCommands
 	    private StewardContext _stewardContext { get; set; }
         private DeathService _deathService { get; set; }
 
-        public AdminModule(StewardContext stewardContext, DeathService deathService)
+		private readonly DiscordSocketClient _client;
+
+		public AdminModule(StewardContext stewardContext, DeathService deathService, DiscordSocketClient client)
         {
             _stewardContext = stewardContext;
             _deathService = deathService;
+			_client = client;
         }
 
         [Command("raise dead")]
@@ -182,18 +185,19 @@ namespace Steward.Discord.AdminCommands
 		public async Task ListOp()
 		{
 			var DiscordUsers = await _stewardContext.DiscordUsers.ToListAsync();
-
-			var embedBuilder = new EmbedBuilder()
-				.WithColor(Color.Purple)
-				.WithTitle("Admins");
+			var Message = "";
 
 			foreach (var DiscordUser in _stewardContext.DiscordUsers)
 			{
 				if (DiscordUser.CanUseAdminCommands == true)
 				{
-					embedBuilder.AddField(DiscordUser.DiscordId, "", true);
+					
+					var UserName = _client.GetUser(ulong.Parse(DiscordUser.DiscordId)).ToString();
+					Message += UserName + " ; ";
 				}
 			}
+
+			await ReplyAsync(Message);
 		}
     }
 }
