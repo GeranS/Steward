@@ -283,6 +283,37 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync("Character has been deleted.");
 		}
 
+		[Command("change stats")]
+		[RequireStewardPermission]
+		public async Task ChangeCharacterStats([Remainder] SocketGuildUser mention, 
+			int str, 
+			int end, 
+			int dex, 
+			int per,
+			int intel)
+		{
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
+
+			activeCharacter.STR = str;
+			activeCharacter.END = end;
+			activeCharacter.DEX = dex;
+			activeCharacter.PER = per;
+			activeCharacter.INT = intel;
+
+			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Updated character stats.");
+		}
+
 		[Command("change name")]
 		[RequireStewardPermission]
 		public async Task ChangeCharacterName(string newName, [Remainder] SocketGuildUser mention)
