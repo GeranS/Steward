@@ -168,8 +168,8 @@ namespace Steward.Discord.GenericCommands
 			[Summary("The name if your character, use quotation marks around the name if it includes a space.")] string name, 
 			[Summary("The name of the house your character is part of.")] string houseName, 
 			[Summary("Strength")] int str,
-			[Summary("Dexterity")] int dex,
 			[Summary("Endurance")] int end,
+			[Summary("Dexterity")] int dex,
 			[Summary("Perception")] int per,
 			[Summary("Intelligence")] int intel)
 		{
