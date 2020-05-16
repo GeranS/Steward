@@ -276,5 +276,65 @@ namespace Steward.Discord.GenericCommands
 				await ReplyAsync("Character moved to new house.");
 			}
 		}
+
+		[Command("link house role")]
+		[RequireStewardPermission]
+		public async Task LinkHouseRole(string houseName, [Remainder] SocketRole role)
+		{
+			var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+
+			if (house == null)
+			{
+				await ReplyAsync($"Could not find house {houseName}");
+				return;
+			}
+
+			if (house.HouseRoleId != null && house.HouseRoleId == role.Id.ToString())
+			{
+				await ReplyAsync("House is already linked to this role.");
+				return;
+			}
+
+			var roleIsAlreadyUsed = _stewardContext.Houses.Where(h => h.HouseRoleId == role.Id.ToString());
+
+			if (roleIsAlreadyUsed.Count() != 0)
+			{
+				await ReplyAsync("Role is already linked to a house.");
+				return;
+			}
+
+			house.HouseRoleId = role.Id.ToString();
+
+			_stewardContext.Houses.Update(house);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Role linked.");
+		}
+
+		[Command("unlink house role")]
+		[RequireStewardPermission]
+		public async Task UnlinkHouseRole(string houseName)
+		{
+			var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+
+			if (house == null)
+			{
+				await ReplyAsync($"Could not find house {houseName}");
+				return;
+			}
+
+			if (house.HouseRoleId == null)
+			{
+				await ReplyAsync("House does not have a linked role.");
+				return;
+			}
+
+			house.HouseRoleId = null;
+
+			_stewardContext.Houses.Update(house);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Role unlinked.");
+		}
 	}
 }
