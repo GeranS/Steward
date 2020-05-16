@@ -265,6 +265,24 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync($"Created character with the name {newCharacter.CharacterName}.");
 		}
 
+		[Command("delete character")]
+		[RequireStewardPermission]
+		public async Task DeleteCharacter(string id)
+		{
+			var character = _stewardContext.PlayerCharacters.SingleOrDefault(c => c.CharacterId == id);
+
+			if (character == null)
+			{
+				await ReplyAsync("Could not find character.");
+				return;
+			}
+
+			_stewardContext.PlayerCharacters.Remove(character);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Character has been deleted.");
+		}
+
 		[Command("admin history")]
 		[RequireStewardPermission]
 		public async Task ShowCharacterListWithId([Remainder]SocketGuildUser mention)
