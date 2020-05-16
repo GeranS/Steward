@@ -199,5 +199,40 @@ namespace Steward.Discord.AdminCommands
 
 			await ReplyAsync(Message);
 		}
+
+		[Command("revive")]
+		[RequireStewardPermission]
+		public async Task revive([Remainder]SocketGuildUser mention)
+		{
+
+
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath==null);
+
+			if (activeCharacter != null)
+			{
+				await ReplyAsync("Can not revive since player already has a living character.");
+				return;
+			}
+
+			activeCharacter =
+				_stewardContext.PlayerCharacters
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString());
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("No existing character found.");
+			}
+
+			activeCharacter.YearOfDeath = null;
+
+			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			await _stewardContext.SaveChangesAsync();
+
+			//maybe delete message in graveyard but don't know how to do that
+
+			await ReplyAsync("The dead walk once more!");
+		}
     }
 }
