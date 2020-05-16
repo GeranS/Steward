@@ -176,5 +176,24 @@ namespace Steward.Discord.AdminCommands
 
 	        await ReplyAsync("Admin privileges have been removed.");
         }
+
+		[Command("list op")]
+		[RequireStewardPermission]
+		public async Task ListOp()
+		{
+			var DiscordUsers = await _stewardContext.DiscordUsers.ToListAsync();
+
+			var embedBuilder = new EmbedBuilder()
+				.WithColor(Color.Purple)
+				.WithTitle("Admins");
+
+			foreach (var DiscordUser in _stewardContext.DiscordUsers)
+			{
+				if (DiscordUser.CanUseAdminCommands == true)
+				{
+					embedBuilder.AddField(DiscordUser.DiscordId, "", true);
+				}
+			}
+		}
     }
 }
