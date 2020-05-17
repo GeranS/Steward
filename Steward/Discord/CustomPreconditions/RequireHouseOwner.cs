@@ -23,7 +23,7 @@ namespace Steward.Discord.CustomPreconditions
 			if (activeCharacter == null || !activeCharacter.IsAlive())
 			{
 				return Task.FromResult(
-					PreconditionResult.FromError("You don't have a living character."));
+					PreconditionResult.FromError("Could not find an active character."));
 			}
 
 			if (activeCharacter.House == null)
