@@ -78,9 +78,9 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (bio.Length > 1800)
+			if (bio.Length > 1000)
 			{
-				await ReplyAsync("Bio is too long");
+				await ReplyAsync("Bio has to be 1000 characters or less.");
 				return;
 			}
 

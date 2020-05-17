@@ -155,9 +155,9 @@ namespace Steward.Discord.GenericCommands
 			// Doesn't need a null check, already done in RequireHouseOwner
 			var house = activeCharacter.House;
 
-			if (description.Length > 1800)
+			if (description.Length > 1000)
 			{
-				await ReplyAsync("Description has to be 1800 characters or less.");
+				await ReplyAsync("Description has to be 1000 characters or less.");
 				return;
 			}
 
