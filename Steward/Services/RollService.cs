@@ -32,8 +32,8 @@ namespace Steward.Services
 					attackTypeDamageBonus = 1;
 					break;
 				case "light":
-					attackTypeHitBonus = -1;
-					attackTypeDamageBonus = -1;
+					attackTypeHitBonus = -4;
+					attackTypeDamageBonus = -2;
 					break;
 				case "normal":
 					break;
@@ -46,7 +46,7 @@ namespace Steward.Services
 			var rnd = new Random();
 
 			var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
-			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
 
 			var attackRoll = rnd.Next(1, 20) + strMod + dexMod + attackTypeHitBonus;
 
@@ -88,7 +88,7 @@ namespace Steward.Services
 			var rnd = new Random();
 
 			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
-			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ―〃―
 
 			var rangePenalty = -(range / 2);
 
