@@ -55,7 +55,7 @@ namespace Steward.Services
 				attackRoll = 0;
 			}
 
-			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
 			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus + attackTypeDamageBonus;
 
 			if (damageRoll < 0)
@@ -99,7 +99,7 @@ namespace Steward.Services
 				attackRoll = 0;
 			}
 
-			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- ―〃―
 			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus;
 
 			if (damageRoll < 0)

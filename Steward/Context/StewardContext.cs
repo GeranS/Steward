@@ -197,22 +197,19 @@ namespace Steward.Context
 					{
 						WeaponName = "Sword",
 						IsRanged = false,
-						DieSize = 8,
-						DamageModifier = CharacterAttribute.STR
+						DieSize = 8
 					},
 					new ValkFinderWeapon()
 					{
 						WeaponName = "Dagger",
 						IsRanged = false,
-						DieSize = 6,
-						DamageModifier = CharacterAttribute.STR
+						DieSize = 6
 					},
 					new ValkFinderWeapon()
 					{
 						WeaponName = "Shortbow",
 						IsRanged = true,
-						DieSize = 8,
-						DamageModifier = CharacterAttribute.STR
+						DieSize = 8
 					}
 				});
 
