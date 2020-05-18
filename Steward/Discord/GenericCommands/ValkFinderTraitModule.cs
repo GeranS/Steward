@@ -30,7 +30,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("add trait")]
 		[Summary("Example: -1 0 0 1 0 \"Court Education - You have been educated in the writ of law, and the book of justice or whatever.\"")]
 		[RequireStewardPermission]
-		public async Task CreateTrait(int str, int end, int dex, int per, int intel, int ac, int ap, int hp, string description)
+		public async Task CreateTrait(int str, int end, int dex, int per, int intel, int ac, int ap, int hp, string description, bool secret)
 		{
 			var newTrait = new Trait()
 			{
@@ -42,7 +42,8 @@ namespace Steward.Discord.GenericCommands
 				ArmorClassBonus = ac,
 				AbilityPointBonus = ap,
 				HealthPoolBonus = hp,
-				Description = description
+				Description = description,
+				IsSecret = secret
 			};
 
 			await _stewardContext.Traits.AddAsync(newTrait);
@@ -135,10 +136,63 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync("Trait has been added.");
 		}
 
+		[Command("traits secret")]
+		[RequireStewardPermission]
+		public async Task ShowTraitsAdmin()
+		{
+			var traits = _stewardContext.Traits.Where(t => t.IsSecret == true);
+
+			var embedBuilder = new EmbedBuilder()
+				.WithColor(Color.Purple)
+				.WithTitle("Secret Traits");
+
+			foreach (var trait in traits)
+			{
+				var bonusString = "";
+
+				if (trait.STR != 0)
+				{
+					bonusString += $"STR({trait.STR}) ";
+				}
+				if (trait.DEX != 0)
+				{
+					bonusString += $"DEX({trait.DEX}) ";
+				}
+				if (trait.END != 0)
+				{
+					bonusString += $"END({trait.END}) ";
+				}
+				if (trait.PER != 0)
+				{
+					bonusString += $"PER({trait.PER}) ";
+				}
+				if (trait.INT != 0)
+				{
+					bonusString += $"INT({trait.INT}) ";
+				}
+				if (trait.ArmorClassBonus != 0)
+				{
+					bonusString += $"AC({trait.ArmorClassBonus}) ";
+				}
+				if (trait.AbilityPointBonus != 0)
+				{
+					bonusString += $"AP({trait.AbilityPointBonus}) ";
+				}
+				if (trait.HealthPoolBonus != 0)
+				{
+					bonusString += $"HP({trait.HealthPoolBonus}) ";
+				}
+
+				embedBuilder.AddField(trait.Description, bonusString, false);
+			}
+
+			await ReplyAsync("", false, embedBuilder.Build(), null);
+		}
+
 		[Command("traits")]
 		public async Task ShowTraits()
 		{
-			var traits = await _stewardContext.Traits.ToListAsync();
+			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false);
 
 			var embedBuilder = new EmbedBuilder()
 				.WithColor(Color.Purple)
