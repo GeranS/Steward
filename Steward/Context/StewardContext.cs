@@ -16,6 +16,7 @@ namespace Steward.Context
 		public DbSet<House> Houses { get; set; }
 		public DbSet<PlayerCharacter> PlayerCharacters { get; set; }
 		public DbSet<StaffAction> StaffActions { get; set; }
+		public DbSet<StaffActionChannel> StaffActionChannels { get; set; }
 		public DbSet<Trait> Traits { get; set; }
 		public DbSet<UserMessageRecord> MessageRecords { get; set; }
 		public DbSet<ValkFinderWeapon> ValkFinderWeapons { get; set; }
