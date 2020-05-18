@@ -285,7 +285,7 @@ namespace Steward.Discord.GenericCommands
 
 		[Command("change stats")]
 		[RequireStewardPermission]
-		public async Task ChangeCharacterStats([Remainder] SocketGuildUser mention, 
+		public async Task ChangeCharacterStats(SocketGuildUser mention, 
 			int str, 
 			int end, 
 			int dex, 
