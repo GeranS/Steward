@@ -30,6 +30,7 @@ namespace Steward.Discord.GenericCommands
 		}
 		
 		[Command("roll")]
+		[RequireActiveCharacter]
 		public async Task RollStat(string stringAttribute)
 		{
 			if (!Enum.TryParse(stringAttribute, true, out CharacterAttribute attribute))
@@ -46,12 +47,6 @@ namespace Steward.Discord.GenericCommands
 
 			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
-			if (activeCharacter == null)
-			{
-				await ReplyAsync("Could not roll because you don't have an active character.");
-				return;
-			}
-
 			var rollResult = _rollService.RollPlayerStat(attribute, activeCharacter, 20);
 
 			var embedBuilder = new EmbedBuilder
@@ -66,6 +61,7 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("dodge")]
+		[RequireActiveCharacter]
 		public async Task RollDodge()
 		{
 			var discordUser = _stewardContext.DiscordUsers
@@ -76,31 +72,18 @@ namespace Steward.Discord.GenericCommands
 
 			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
-			if (activeCharacter == null)
-			{
-				await ReplyAsync("Could not roll because you don't have an active character.");
-				return;
-			}
-
 			var message = _rollService.RollPlayerDodge(activeCharacter);
 
 			await ReplyAsync(embed: message.Build());
-
-		
 		}
 
 		[Command("bio")]
+		[RequireActiveCharacter]
 		public async Task SetBio(string bio)
 		{
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
-
-			if (activeCharacter == null)
-			{
-				await ReplyAsync("Could not find a living character.");
-				return;
-			}
 
 			if (bio.Length > 1000)
 			{
