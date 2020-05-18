@@ -24,19 +24,15 @@ namespace Steward.Discord.GenericCommands
 			_stewardContext = c;
 		}
 
-		[Command("equip melee")]
-		public async Task SetDefaultMeleeWeapon(string weaponName)
+		[Command("equip")]
+		[RequireActiveCharacter]
+		public async Task SetDefaultWeapon(string weaponName)
 		{
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.Include(c => c.DefaultMeleeWeapon)
+					.Include(c => c.DefaultRangedWeapon)
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
-
-			if (activeCharacter == null || !activeCharacter.IsAlive())
-			{
-				await ReplyAsync($"You don't have a living character.");
-				return;
-			}
 
 			var valkFinderWeapon =
 				_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName);
@@ -49,16 +45,17 @@ namespace Steward.Discord.GenericCommands
 
 			if (valkFinderWeapon.IsRanged)
 			{
-				await ReplyAsync($"{weaponName} is not a melee weapon.");
-				return;
+				activeCharacter.DefaultRangedWeapon = valkFinderWeapon;
 			}
-
-			activeCharacter.DefaultMeleeWeapon = valkFinderWeapon;
+			else
+			{
+				activeCharacter.DefaultMeleeWeapon = valkFinderWeapon;
+			}
 
 			_stewardContext.PlayerCharacters.Update(activeCharacter);
 			await _stewardContext.SaveChangesAsync();
 
-			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been set as default melee weapon.");
+			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been equipped.");
 		}
 
 		[Command("melee")]
@@ -97,43 +94,6 @@ namespace Steward.Discord.GenericCommands
 			var message = _rollService.RollMeleeAttack(activeCharacter, valkFinderWeapon, attackType);
 
 			await ReplyAsync(embed: message.Build());
-		}
-
-		[Command("equip ranged")]
-		public async Task SetDefaultRangedWeapon(string weaponName)
-		{
-			var activeCharacter =
-				_stewardContext.PlayerCharacters
-					.Include(c => c.DefaultRangedWeapon)
-					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
-
-			if (activeCharacter == null || !activeCharacter.IsAlive())
-			{
-				await ReplyAsync($"You don't have a living character.");
-				return;
-			}
-
-			var valkFinderWeapon =
-				_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName);
-
-			if (valkFinderWeapon == null)
-			{
-				await ReplyAsync($"Could not find weapon.");
-				return;
-			}
-
-			if (!valkFinderWeapon.IsRanged)
-			{
-				await ReplyAsync($"{weaponName} is not a ranged weapon.");
-				return;
-			}
-
-			activeCharacter.DefaultRangedWeapon = valkFinderWeapon;
-
-			_stewardContext.PlayerCharacters.Update(activeCharacter);
-			await _stewardContext.SaveChangesAsync();
-
-			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been set as default ranged weapon.");
 		}
 
 		[Command("ranged")]
@@ -189,17 +149,21 @@ namespace Steward.Discord.GenericCommands
 
 			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
 
+			var stringBuilder = new StringBuilder();
+
 			foreach (var weapon in sortedValkFinderWeapons)
 			{
 				if (weapon.IsRanged)
 				{
-					embedBuilder.AddField(weapon.WeaponName, $"1d{weapon.DieSize} ranged");
+					stringBuilder.AppendLine($"{weapon.WeaponName}: 1d{weapon.DieSize} ranged");
 				}
 				else
 				{
-					embedBuilder.AddField(weapon.WeaponName, $"1d{weapon.DieSize} melee");
+					stringBuilder.AppendLine($"{weapon.WeaponName}: 1d{weapon.DieSize} melee");
 				}
 			}
+
+			embedBuilder.AddField("Weapons", stringBuilder.ToString());
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
