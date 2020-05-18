@@ -189,17 +189,21 @@ namespace Steward.Discord.GenericCommands
 
 			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
 
+			var stringBuilder = new StringBuilder();
+
 			foreach (var weapon in sortedValkFinderWeapons)
 			{
 				if (weapon.IsRanged)
 				{
-					embedBuilder.AddField(weapon.WeaponName, $"1d{weapon.DieSize} ranged");
+					stringBuilder.AppendLine($"{weapon.WeaponName}: 1d{weapon.DieSize} ranged");
 				}
 				else
 				{
-					embedBuilder.AddField(weapon.WeaponName, $"1d{weapon.DieSize} melee");
+					stringBuilder.AppendLine($"{weapon.WeaponName}: 1d{weapon.DieSize} melee");
 				}
 			}
+
+			embedBuilder.AddField("Weapons", stringBuilder.ToString());
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
