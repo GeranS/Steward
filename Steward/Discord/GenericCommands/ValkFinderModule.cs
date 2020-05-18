@@ -65,6 +65,30 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
 
+		[Command("dodge")]
+		public async Task RollDodge()
+		{
+			var discordUser = _stewardContext.DiscordUsers
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.CharacterTraits)
+				.ThenInclude(ct => ct.Trait)
+				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("Could not roll because you don't have an active character.");
+				return;
+			}
+
+			var message = _rollService.RollPlayerDodge(activeCharacter);
+
+			await ReplyAsync(embed: message.Build());
+
+		
+		}
+
 		[Command("bio")]
 		public async Task SetBio(string bio)
 		{
