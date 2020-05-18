@@ -188,7 +188,7 @@ namespace Steward.Services
 					{
 						totalBonus += character.House.STR;
 					}
-					
+
 					baseStat = character.STR;
 					break;
 				case CharacterAttribute.DEX:
@@ -246,6 +246,9 @@ namespace Steward.Services
 			}
 
 			var endResult = baseStat + totalBonus;
+
+			if (endResult < 1)
+				endResult = 1;
 
 			return endResult;
 		}
