@@ -154,6 +154,23 @@ namespace Steward.Services
 			};
 		}
 
+		public EmbedBuilder RollPlayerDodge(PlayerCharacter character)
+		{
+			var rnd = new Random();
+			
+			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
+			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+
+			var dodgeRoll = rnd.Next(1, 20) + perMod + dexMod;
+			var dodgeRollString = $"1d20+{perMod} + {dexMod} = {dodgeRoll}";
+			
+			var embedBuilder = new EmbedBuilder().WithColor(Color.DarkPurple).WithTitle($"Dodge");
+
+			embedBuilder.AddField("Dodge Roll", dodgeRollString);
+
+			return embedBuilder;
+		}
+
 		public int CalculateStat(CharacterAttribute attribute, PlayerCharacter character)
 		{
 			var totalBonus = 0;
