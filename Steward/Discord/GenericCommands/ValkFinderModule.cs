@@ -189,7 +189,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("create")]
 		[Summary("Creates a new character, can only be done if you don't have any living characters. Example: !create \"Olgilvie Maurice Wentworth\" \"Harcaster\" 12 14 8 8 8")]
 		public async Task CreateCharacter(
-			[Summary("The name if your character, use quotation marks around the name if it includes a space.")] string name, 
+			[Summary("The name of your character, use quotation marks around the name if it includes a space.")] string name, 
 			[Summary("The name of the house your character is part of.")] string houseName, 
 			[Summary("Strength")] int str,
 			[Summary("Endurance")] int end,

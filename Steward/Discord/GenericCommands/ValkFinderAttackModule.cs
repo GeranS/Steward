@@ -203,8 +203,7 @@ namespace Steward.Discord.GenericCommands
 			{
 				WeaponName = name,
 				DieSize = dieSize,
-				IsRanged = rangedOrMelee == "ranged",
-				DamageModifier = CharacterAttribute.STR
+				IsRanged = rangedOrMelee == "ranged"
 			};
 
 			_stewardContext.ValkFinderWeapons.Add(newWeapon);

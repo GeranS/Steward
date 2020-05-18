@@ -32,8 +32,8 @@ namespace Steward.Services
 					attackTypeDamageBonus = 1;
 					break;
 				case "light":
-					attackTypeHitBonus = -1;
-					attackTypeDamageBonus = -1;
+					attackTypeHitBonus = -4;
+					attackTypeDamageBonus = -2;
 					break;
 				case "normal":
 					break;
@@ -46,7 +46,7 @@ namespace Steward.Services
 			var rnd = new Random();
 
 			var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
-			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
 
 			var attackRoll = rnd.Next(1, 20) + strMod + dexMod + attackTypeHitBonus;
 
@@ -55,7 +55,7 @@ namespace Steward.Services
 				attackRoll = 0;
 			}
 
-			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
 			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus + attackTypeDamageBonus;
 
 			if (damageRoll < 0)
@@ -88,7 +88,7 @@ namespace Steward.Services
 			var rnd = new Random();
 
 			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
-			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ―〃―
 
 			var rangePenalty = -(range / 2);
 
@@ -99,7 +99,7 @@ namespace Steward.Services
 				attackRoll = 0;
 			}
 
-			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- ―〃―
 			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus;
 
 			if (damageRoll < 0)
@@ -188,7 +188,7 @@ namespace Steward.Services
 					{
 						totalBonus += character.House.STR;
 					}
-					
+
 					baseStat = character.STR;
 					break;
 				case CharacterAttribute.DEX:
@@ -246,6 +246,9 @@ namespace Steward.Services
 			}
 
 			var endResult = baseStat + totalBonus;
+
+			if (endResult < 1)
+				endResult = 1;
 
 			return endResult;
 		}
