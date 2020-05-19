@@ -124,7 +124,9 @@ namespace Steward.Services
 
 			var rangePenalty = -(range / 2);
 
-			var attackRoll = rnd.Next(1, 20) + perMod + dexMod + rangePenalty;
+            var rawAttackRoll = rnd.Next(1, 20);
+			var attackRoll = rawAttackRoll + perMod + dexMod + rangePenalty;
+            var crit = rawAttackRoll == 20;
 
 			if (attackRoll < 0)
 			{
@@ -132,14 +134,23 @@ namespace Steward.Services
 			}
 
 			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- ―〃―
-			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus;
+            var rawDamageRoll = rnd.Next(1, weapon.DieSize);
+			var damageRoll =  rawDamageRoll + damageRollBonus;
 
-			if (damageRoll < 0)
+            if (crit)
+                damageRoll += rawDamageRoll;
+
+            if (damageRoll < 0)
 			{
 				damageRoll = 0;
 			}
-			var attackRollString = $"1d20 + {perMod + dexMod} - {rangePenalty*-1} = {attackRoll}";
-			var damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} = {damageRoll}";
+			var attackRollString = $"(1d20 = {rawAttackRoll}) + {perMod + dexMod} - {rangePenalty*-1} = {attackRoll}";
+            if (crit)
+                attackRollString += " **!CRITICAL HIT!**";
+            var damageRollString = $"(1d{weapon.DieSize} = {rawDamageRoll})";
+            if (crit)
+                damageRollString += " * 2";
+            damageRollString += $" + {damageRollBonus} = {damageRoll}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Ranged: {weapon.WeaponName}");
 
