@@ -22,30 +22,43 @@ namespace Steward.Services
             _client = client;
         }
 
-
         public EmbedBuilder BuildStaffActionMessage(StaffAction staffAction)
         {
             var embedBuilder = new EmbedBuilder
             {
                 Color = Color.Purple,
-                Title = staffAction.ActionTitle,
+                Title = staffAction.ActionTitle + " - " + staffAction.StaffActionId.ToString(),
             };
 
-            var assignedStaff = _client.GetUser(ulong.Parse(staffAction.AssignedToId));
+            EmbedFieldBuilder embedFieldBuilder;
 
-            var embedFieldBuilder = new EmbedFieldBuilder
+            if (staffAction.AssignedToId == null)
             {
-                Value = staffAction.ActionDescription,
-                Name = staffAction.Status.ToString()+ " : "+assignedStaff.Mention,
-                IsInline = false
-            };
+	            embedFieldBuilder = new EmbedFieldBuilder
+	            {
+		            Value = staffAction.ActionDescription,
+		            Name = staffAction.Status.ToString(),
+		            IsInline = false
+	            };
+            }
+            else
+            {
+	            var assignedStaff = _client.GetUser(ulong.Parse(staffAction.AssignedToId));
+
+	            embedFieldBuilder = new EmbedFieldBuilder
+	            {
+		            Value = staffAction.ActionDescription,
+		            Name = staffAction.Status.ToString() + " : " + assignedStaff.Username,
+		            IsInline = false
+	            };
+            }
 
             embedBuilder.AddField(embedFieldBuilder);
 
             embedBuilder.AddField(new EmbedFieldBuilder
             {
                 Name = "Response",
-                Value = staffAction.ActionResponse
+                Value = staffAction.ActionResponse == null ? "None." : staffAction.ActionResponse
             });
 
             return embedBuilder;

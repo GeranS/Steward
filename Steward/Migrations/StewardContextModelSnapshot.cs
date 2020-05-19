@@ -103,6 +103,9 @@ namespace Steward.Migrations
                     b.Property<string>("HouseOwnerId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("HouseRoleId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("INT")
                         .HasColumnType("int");
 
@@ -317,6 +320,9 @@ namespace Steward.Migrations
                     b.Property<string>("AssignedToId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("MessageId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -330,6 +336,19 @@ namespace Steward.Migrations
                     b.HasIndex("SubmitterId");
 
                     b.ToTable("StaffActions");
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.StaffActionChannel", b =>
+                {
+                    b.Property<string>("ChannelId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ServerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ChannelId");
+
+                    b.ToTable("StaffActionChannels");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.Trait", b =>
@@ -359,6 +378,9 @@ namespace Steward.Migrations
                     b.Property<int>("INT")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsSecret")
+                        .HasColumnType("bit");
+
                     b.Property<int>("PER")
                         .HasColumnType("int");
 
@@ -380,6 +402,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = 0,
+                            IsSecret = false,
                             PER = 1,
                             STR = -1
                         },
@@ -393,6 +416,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = -1,
+                            IsSecret = false,
                             PER = 0,
                             STR = 1
                         },
@@ -406,6 +430,7 @@ namespace Steward.Migrations
                             END = 1,
                             HealthPoolBonus = 0,
                             INT = 0,
+                            IsSecret = false,
                             PER = 0,
                             STR = 0
                         },
@@ -419,6 +444,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = 1,
+                            IsSecret = false,
                             PER = 0,
                             STR = 0
                         },
@@ -432,6 +458,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = -2,
+                            IsSecret = false,
                             PER = 0,
                             STR = 0
                         });
@@ -468,9 +495,6 @@ namespace Steward.Migrations
                     b.Property<string>("WeaponName")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("DamageModifier")
-                        .HasColumnType("int");
-
                     b.Property<int>("DieSize")
                         .HasColumnType("int");
 
@@ -485,21 +509,18 @@ namespace Steward.Migrations
                         new
                         {
                             WeaponName = "Sword",
-                            DamageModifier = 0,
                             DieSize = 8,
                             IsRanged = false
                         },
                         new
                         {
                             WeaponName = "Dagger",
-                            DamageModifier = 0,
                             DieSize = 6,
                             IsRanged = false
                         },
                         new
                         {
                             WeaponName = "Shortbow",
-                            DamageModifier = 0,
                             DieSize = 8,
                             IsRanged = true
                         });

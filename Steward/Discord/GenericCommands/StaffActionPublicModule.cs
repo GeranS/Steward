@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Rest;
 using Discord.WebSocket;
 using Steward.Discord.CustomPreconditions;
 using Steward.Services;
@@ -30,11 +31,11 @@ namespace Steward.Discord.GenericCommands
 		[RequireStewardPermission]
 		public async Task createStaffActionChannel()
 		{
-			var existingStaffActionChannel = _stewardContext.StaffActionChannels.FirstOrDefault(sa=> sa.ChannelId == Context.Channel.Id.ToString());
+			var existingStaffActionChannel = _stewardContext.StaffActionChannels.ToList();
 
-			if (existingStaffActionChannel != null)
+			if (existingStaffActionChannel.Count != 0)
 			{
-				await ReplyAsync("This channel is already a Staff Action Channel");
+				await ReplyAsync("There's already an existing StaffAction channel.");
 				return;
 			}
 
@@ -84,10 +85,8 @@ namespace Steward.Discord.GenericCommands
 			{
 				try
 				{
-
-					var message = await staffChannel.GetMessageAsync(ulong.Parse(staffAction.MessageId)) as SocketUserMessage;
+					var message = await staffChannel.GetMessageAsync(ulong.Parse(staffAction.MessageId)) as RestUserMessage;
 					await message.ModifyAsync(x => x.Embed = embedBuilder.Build());
-
 				}
 				catch (NullReferenceException e)
 				{
@@ -95,6 +94,8 @@ namespace Steward.Discord.GenericCommands
 					//nothing, I just don't want it to crash the command
 				}
 			}
+
+			await ReplyAsync("Response received.");
 		}
 
 		[Command("assign")]
@@ -134,10 +135,8 @@ namespace Steward.Discord.GenericCommands
 			{
 				try
 				{
-
-					var message = await staffChannel.GetMessageAsync(ulong.Parse(staffAction.MessageId)) as SocketUserMessage;
+					var message = await staffChannel.GetMessageAsync(ulong.Parse(staffAction.MessageId)) as RestUserMessage;
 					await message.ModifyAsync(x => x.Embed = embedBuilder.Build());
-
 				}
 				catch (NullReferenceException e)
 				{
@@ -159,7 +158,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (description.Length > 1800)
+			if (description.Length > 1000)
 			{
 				await ReplyAsync("Description must be shorter than 1800 characters.");
 				return;
@@ -174,7 +173,8 @@ namespace Steward.Discord.GenericCommands
 				Submitter = discordUser
 			};
 
-			
+			_stewardContext.StaffActions.Add(action);
+			await _stewardContext.SaveChangesAsync();
 
 			var StaffChannels = _stewardContext.StaffActionChannels.ToList();
 
@@ -184,11 +184,8 @@ namespace Steward.Discord.GenericCommands
 			{
 				try
 				{
-					
 					var message = await staffChannel.SendMessageAsync("", false, embedBuilder.Build());
 					action.MessageId = message.Id.ToString();
-					
-
 				}
 				catch (NullReferenceException e)
 				{
@@ -197,45 +194,14 @@ namespace Steward.Discord.GenericCommands
 				}
 			}
 
-			_stewardContext.StaffActions.Add(action);
-			_stewardContext.SaveChanges();
-		}
-
-		[Command("actions")]
-		public async Task AllActions()
-		{
-			var activeActions = _stewardContext.StaffActions.Where(sa => sa.Status != StaffActionStatus.DONE);
-
-			var embedBuilder = new EmbedBuilder
-			{
-				Color = Color.Purple
-			};
-
-			if (!activeActions.Any())
-			{
-				await ReplyAsync("No actions found.");
-				return;
-			}
-
-			foreach (var sa in activeActions)
-			{
-				var embedFieldBuilder = new EmbedFieldBuilder
-				{
-					Value = sa.ActionTitle,
-					Name = sa.Status.ToString(),
-					IsInline = false
-				};
-
-				embedBuilder.AddField(embedFieldBuilder);
-			}
-
-			await ReplyAsync("", false, embedBuilder.Build(), null);
+			_stewardContext.StaffActions.Update(action);
+			await _stewardContext.SaveChangesAsync();
 		}
 
 		[Command("my actions")]
 		public async Task MyActions()
 		{
-			var activeActions = _stewardContext.StaffActions.Where(sa => sa.SubmitterId == Context.User.Id.ToString() && sa.Status != StaffActionStatus.DONE);
+			var activeActions = _stewardContext.StaffActions.Where(sa => sa.SubmitterId == Context.User.Id.ToString());
 
 			var embedBuilder = new EmbedBuilder
 			{
@@ -250,14 +216,30 @@ namespace Steward.Discord.GenericCommands
 
 			foreach (var sa in activeActions)
 			{
-				var embedFieldBuilder = new EmbedFieldBuilder
+				if (sa.AssignedToId == null)
 				{
-					Value = sa.ActionTitle,
-					Name = sa.Status.ToString(),
-					IsInline = false
-				};
+					var embedFieldBuilder = new EmbedFieldBuilder
+					{
+						Value = sa.ActionResponse == null ? "No response yet." : $"Response: {sa.ActionResponse}",
+						Name = sa.ActionTitle + " - " + sa.Status.ToString(),
+						IsInline = false
+					};
 
-				embedBuilder.AddField(embedFieldBuilder);
+					embedBuilder.AddField(embedFieldBuilder);
+				}
+				else
+				{
+					var staffAssignedTo = _client.GetUser(ulong.Parse(sa.AssignedToId));
+
+					var embedFieldBuilder = new EmbedFieldBuilder
+					{
+						Value = sa.ActionResponse == null ? "No response yet." : $"Response: {sa.ActionResponse}",
+						Name = sa.ActionTitle + " - " + sa.Status.ToString() + " - " + staffAssignedTo.Username,
+						IsInline = false
+					};
+
+					embedBuilder.AddField(embedFieldBuilder);
+				}
 			}
 
 			await ReplyAsync("", false, embedBuilder.Build(), null);

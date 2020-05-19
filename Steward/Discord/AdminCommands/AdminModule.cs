@@ -204,22 +204,29 @@ namespace Steward.Discord.AdminCommands
 		[RequireStewardPermission]
 		public async Task revive(string characterId)
 		{
-
-
-			var activeCharacter =
+			var deadCharacter =
 				_stewardContext.PlayerCharacters
+					.Include(c => c.DiscordUser)
+					.ThenInclude(du => du.Characters)
 					.SingleOrDefault(c => c.CharacterId == characterId && c.YearOfDeath!=null);
 
-			if (activeCharacter == null)
+			if (deadCharacter == null)
 			{
-				await ReplyAsync("Character is either still alive or has not been found.");
+				await ReplyAsync("Character could not be found.");
 				return;
 			}
 
+			var hasLivingCharacter = deadCharacter.DiscordUser.Characters.Where(c => c.YearOfDeath == null);
 
-			activeCharacter.YearOfDeath = null;
+			if (hasLivingCharacter.Count() != 0)
+			{
+				await ReplyAsync("User still has a living character.");
+				return;
+			}
 
-			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			deadCharacter.YearOfDeath = null;
+
+			_stewardContext.PlayerCharacters.Update(deadCharacter);
 			await _stewardContext.SaveChangesAsync();
 
 			//maybe delete message in graveyard but don't know how to do that

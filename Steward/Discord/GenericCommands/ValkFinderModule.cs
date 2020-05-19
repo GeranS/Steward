@@ -45,6 +45,8 @@ namespace Steward.Discord.GenericCommands
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
 				.ThenInclude(ct => ct.Trait)
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.House)
 				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
 			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
@@ -70,6 +72,8 @@ namespace Steward.Discord.GenericCommands
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
 				.ThenInclude(ct => ct.Trait)
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.House)
 				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
 			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
@@ -279,7 +283,10 @@ namespace Steward.Discord.GenericCommands
 		[RequireStewardPermission]
 		public async Task DeleteCharacter(string id)
 		{
-			var character = _stewardContext.PlayerCharacters.SingleOrDefault(c => c.CharacterId == id);
+			var character = _stewardContext.PlayerCharacters
+				.Include(c => c.CharacterTraits)
+				.Include(c => c.House)
+				.SingleOrDefault(c => c.CharacterId == id);
 
 			if (character == null)
 			{
@@ -287,6 +294,9 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
+			character.House.HouseOwner = null;
+
+			_stewardContext.CharacterTraits.RemoveRange(character.CharacterTraits);
 			_stewardContext.PlayerCharacters.Remove(character);
 			await _stewardContext.SaveChangesAsync();
 
@@ -418,15 +428,15 @@ namespace Steward.Discord.GenericCommands
 			foreach (var character in sortedCharacters)
 			{
 				
-				if (activeCharacter.House != null)
+				if (character.House == null)
 				{
 					embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
-						$"{character.CharacterName} of House {activeCharacter.House.HouseName}");
+						$"{character.CharacterName}");
 				}
 				else
 				{
 					embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
-						$"{character.CharacterName}");
+						$"{character.CharacterName} of House {character.House.HouseName}");
 				}
 			}
 

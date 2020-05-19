@@ -49,7 +49,7 @@ namespace Steward.Services
             var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
             var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
 
-            var attackRollRaw = rnd.Next(1, 20);
+            var attackRollRaw = rnd.Next(1, 21);
 
 			var attackRoll = attackRollRaw + strMod + dexMod + attackTypeHitBonus;
 
@@ -58,17 +58,17 @@ namespace Steward.Services
                 attackRoll = 0;
             }
 
-            bool crit = attackRoll - strMod - dexMod - attackTypeHitBonus == 20; //are we crittin'?
+			bool crit = attackRollRaw == 20; //are we crittin'?
 
-            var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
-            var damageRollRaw = rnd.Next(1, weapon.DieSize);
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
+            var damageRollRaw = rnd.Next(1, weapon.DieSize + 1);
             var damageRoll = damageRollRaw + damageRollBonus + attackTypeDamageBonus;
 
             var critRoll = 0;
 
             if (crit)
             {
-                critRoll = rnd.Next(1, weapon.DieSize); //We crittin'.
+                critRoll = rnd.Next(1, weapon.DieSize + 1); //We crittin'.
 
             }
 
@@ -124,7 +124,7 @@ namespace Steward.Services
 
 			var rangePenalty = -(range / 2);
 
-            var rawAttackRoll = rnd.Next(1, 20);
+            var rawAttackRoll = rnd.Next(1, 21);
 			var attackRoll = rawAttackRoll + perMod + dexMod + rangePenalty;
             var crit = rawAttackRoll == 20;
 
@@ -134,7 +134,7 @@ namespace Steward.Services
 			}
 
 			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- ―〃―
-            var rawDamageRoll = rnd.Next(1, weapon.DieSize);
+            var rawDamageRoll = rnd.Next(1, weapon.DieSize + 1);
 			var damageRoll =  rawDamageRoll + damageRollBonus;
 
             if (crit)
@@ -166,15 +166,15 @@ namespace Steward.Services
 
 			var rnd = new Random();
 
-			var roll = rnd.Next(1, dice) + mod;
+			var roll = rnd.Next(1, dice + 1) + mod;
 
 			if (mod >= 0)
 			{
-				return $"d{dice}+{mod} = [{roll}]";
+				return $"d{dice} + {mod} = [{roll}]";
 			}
 			else
 			{
-				return $"d{dice}{mod} = [{roll}]";
+				return $"d{dice} {mod} = [{roll}]";
 			}
 		}
 
@@ -204,8 +204,8 @@ namespace Steward.Services
 			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
 			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
 
-			var dodgeRoll = rnd.Next(1, 20) + perMod + dexMod;
-			var dodgeRollString = $"1d20+{perMod} + {dexMod} = {dodgeRoll}";
+			var dodgeRoll = rnd.Next(1, 21) + perMod + dexMod;
+			var dodgeRollString = $"1d20 + {perMod} + {dexMod} = {dodgeRoll}";
 			
 			var embedBuilder = new EmbedBuilder().WithColor(Color.DarkPurple).WithTitle($"Dodge");
 
@@ -291,7 +291,9 @@ namespace Steward.Services
 			var endResult = baseStat + totalBonus;
 
 			if (endResult < 1)
+			{
 				endResult = 1;
+			}
 
 			return endResult;
 		}

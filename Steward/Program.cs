@@ -71,6 +71,7 @@ namespace Steward
 			.AddSingleton<DeathService>()
 			.AddSingleton<CharacterService>()
 			.AddSingleton<HouseRoleManager>()
+			.AddSingleton<StaffActionService>()
 			.AddDbContext<StewardContext>(ServiceLifetime.Transient)
 			.BuildServiceProvider();
 	}

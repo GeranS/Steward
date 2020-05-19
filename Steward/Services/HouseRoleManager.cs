@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,14 +55,30 @@ namespace Steward.Services
 				}
 				catch
 				{
-					return $"Could not find house role for {h.HouseName}.";
+					Debug.WriteLine($"Could not find a role for {h.HouseName}");
 				}
+			}
+
+			var guildUser = guild.GetUser(ulong.Parse(character.DiscordUserId));
+
+			if (!character.IsAlive())
+			{
+				var houseRolesToBeRemoved = new List<SocketRole>();
+
+				foreach (var hr in allHouseRoles)
+				{
+					if (guildUser.Roles.Contains(hr))
+					{
+						houseRolesToBeRemoved.Add(hr);
+					}
+				}
+
+				guildUser.RemoveRolesAsync(houseRolesToBeRemoved);
+				return null;
 			}
 
 			var allHouseRolesExceptNeededOne = new List<SocketRole>(allHouseRoles);
 			allHouseRolesExceptNeededOne.Remove(houseRole);
-
-			var guildUser = guild.GetUser(ulong.Parse(character.DiscordUserId));
 
 			var rolesToBeRemoved = allHouseRolesExceptNeededOne.Where(unwantedHouseRole => guildUser.Roles.Contains(unwantedHouseRole)).ToList();
 
