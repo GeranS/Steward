@@ -92,7 +92,7 @@ namespace Steward.Services
                 attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll} **!CRITICAL HIT!**";
 			}
 
-            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + {damageRollBonus} = {damageRoll}";
+            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) = {damageRoll}";
             if (attackTypeDamageBonus != 0 && crit)
             {
                 damageRollString =
