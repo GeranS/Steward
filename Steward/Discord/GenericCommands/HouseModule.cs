@@ -52,7 +52,9 @@ namespace Steward.Discord.GenericCommands
 
 			if (houseName != null)
 			{
-				var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+				var house = _stewardContext.Houses
+					.Include(h => h.HouseOwner)
+					.SingleOrDefault(h => h.HouseName == houseName);
 
 				if (house == null)
 				{
