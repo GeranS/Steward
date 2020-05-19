@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Discord;
 using Discord.WebSocket;
@@ -20,70 +21,101 @@ namespace Steward.Services
 		}
 
 		public EmbedBuilder RollMeleeAttack(PlayerCharacter character, ValkFinderWeapon weapon, string attackType)
-		{
+        {
 
-			var attackTypeHitBonus = 0;
-			var attackTypeDamageBonus = 0;
+            var attackTypeHitBonus = 0;
+            var attackTypeDamageBonus = 0;
 
-			switch (attackType)
-			{
-				case "heavy":
-					attackTypeHitBonus = 1;
-					attackTypeDamageBonus = 1;
-					break;
-				case "light":
-					attackTypeHitBonus = -4;
-					attackTypeDamageBonus = -2;
-					break;
-				case "normal":
-					break;
-				default:
-					var embedBuilderError = new EmbedBuilder().WithColor(Color.Purple);
-					embedBuilderError.AddField("Error", "Unknown attack type");
-					return embedBuilderError;
-			}
+            switch (attackType)
+            {
+                case "heavy":
+                    attackTypeHitBonus = 1;
+                    attackTypeDamageBonus = 1;
+                    break;
+                case "light":
+                    attackTypeHitBonus = -4;
+                    attackTypeDamageBonus = -2;
+                    break;
+                case "normal":
+                    break;
+                default:
+                    var embedBuilderError = new EmbedBuilder().WithColor(Color.Purple);
+                    embedBuilderError.AddField("Error", "Unknown attack type");
+                    return embedBuilderError;
+            }
 
-			var rnd = new Random();
+            var rnd = new Random();
 
-			var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
-			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
+            var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
+            var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
 
-			var attackRoll = rnd.Next(1, 20) + strMod + dexMod + attackTypeHitBonus;
+            var attackRollRaw = rnd.Next(1, 20);
 
-			if (attackRoll < 0)
-			{
-				attackRoll = 0;
-			}
+			var attackRoll = attackRollRaw + strMod + dexMod + attackTypeHitBonus;
 
-			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
-			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus + attackTypeDamageBonus;
+            if (attackRoll < 0)
+            {
+                attackRoll = 0;
+            }
+
+            bool crit = attackRoll - strMod - dexMod - attackTypeHitBonus == 20; //are we crittin'?
+
+            var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
+            var damageRollRaw = rnd.Next(1, weapon.DieSize);
+            var damageRoll = damageRollRaw + damageRollBonus + attackTypeDamageBonus;
+
+            var critRoll = 0;
+
+            if (crit)
+            {
+                critRoll = rnd.Next(1, weapon.DieSize); //We crittin'.
+
+            }
+
+            damageRoll += critRoll;
 
 			if (damageRoll < 0)
+            {
+                damageRoll = 0;
+            }
+
+			//TODO: Clean this up into something modular, redefining the entire string each time just isn't maintainable.
+            var attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll}";
+            if (attackTypeHitBonus != 0 && crit)
+            {
+                attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll} **!CRITICAL HIT!**";
+            } else if (attackTypeHitBonus != 0)
 			{
-				damageRoll = 0;
+				attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll}";
+            } else if (crit)
+            {
+                attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll} **!CRITICAL HIT!**";
 			}
 
-			var attackRollString = $"1d20 + {strMod + dexMod} = {attackRoll}";
-			if (attackTypeHitBonus != 0)
-			{
-				attackRollString = $"1d20 + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll}";
+            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + {damageRollBonus} = {damageRoll}";
+            if (attackTypeDamageBonus != 0 && crit)
+            {
+                damageRollString =
+                    $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {damageRollBonus} + {attackTypeDamageBonus} from attack type = {damageRoll}";
+            } else if (attackTypeHitBonus != 0)
+            {
+				damageRollString =
+                    $"(1d{weapon.DieSize} = {damageRollRaw}) + {damageRollBonus} + {attackTypeDamageBonus} from attack type = {damageRoll}";
 			}
-			
-			var damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} = {damageRoll}";
-			if (attackTypeDamageBonus != 0)
-			{
-				damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} + {attackTypeDamageBonus} from attack type = {damageRoll}";
+            else if (crit)
+            {
+				damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {damageRollBonus} = {damageRoll}";
 			}
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Melee: {weapon.WeaponName} ({attackType}) by {character.CharacterName}");
 
-			embedBuilder.AddField("Attack Roll", attackRollString);
-			embedBuilder.AddField("Damage Roll", damageRollString);
+            embedBuilder.AddField("Attack Roll", attackRollString);
+            embedBuilder.AddField("Damage Roll", damageRollString);
 
-			return embedBuilder;
-		}
+            return embedBuilder;
+        }
 
-		public EmbedBuilder RollRangedAttack(PlayerCharacter character, ValkFinderWeapon weapon, int range)
+        public EmbedBuilder RollRangedAttack(PlayerCharacter character, ValkFinderWeapon weapon, int range)
 		{
 			var rnd = new Random();
 
