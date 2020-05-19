@@ -21,12 +21,14 @@ namespace Steward.Discord.GenericCommands
 		private readonly RollService _rollService;
 		private readonly StewardContext _stewardContext;
 		private readonly CharacterService _characterService;
+		private readonly HouseRoleManager _houseRoleManager;
 
-		public ValkFinderModule(StewardContext c, RollService r, CharacterService characterService)
+		public ValkFinderModule(StewardContext c, RollService r, CharacterService characterService, HouseRoleManager houseRoleManager)
 		{
 			_rollService = r;
 			_stewardContext = c;
 			_characterService = characterService;
+			_houseRoleManager = houseRoleManager;
 		}
 		
 		[Command("roll")]
@@ -248,6 +250,8 @@ namespace Steward.Discord.GenericCommands
 					PER = per,
 					INT = intel
 				};
+
+				await _houseRoleManager.UpdatePlayerHouseRole(newCharacter, _stewardContext.Houses.ToList());
 			}
 			else
 			{
@@ -264,7 +268,6 @@ namespace Steward.Discord.GenericCommands
 					INT = intel
 				};
 			}
-			
 
 			_stewardContext.PlayerCharacters.Add(newCharacter);
 			_stewardContext.SaveChanges();

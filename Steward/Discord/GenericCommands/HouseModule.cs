@@ -10,16 +10,19 @@ using Microsoft.EntityFrameworkCore;
 using Steward.Context;
 using Steward.Context.Models;
 using Steward.Discord.CustomPreconditions;
+using Steward.Services;
 
 namespace Steward.Discord.GenericCommands
 {
 	public class HouseModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly StewardContext _stewardContext;
+		private readonly HouseRoleManager _houseRoleManager;
 
-		public HouseModule(StewardContext stewardContext)
+		public HouseModule(StewardContext stewardContext, HouseRoleManager houseRoleManager)
 		{
 			_stewardContext = stewardContext;
+			_houseRoleManager = houseRoleManager;
 		}
 
 		[Command("houses")]
@@ -272,6 +275,8 @@ namespace Steward.Discord.GenericCommands
 
 				_stewardContext.PlayerCharacters.Update(activeCharacter);
 				await _stewardContext.SaveChangesAsync();
+
+				await _houseRoleManager.UpdatePlayerHouseRole(activeCharacter, _stewardContext.Houses.ToList());
 
 				await ReplyAsync("Character moved to new house.");
 			}

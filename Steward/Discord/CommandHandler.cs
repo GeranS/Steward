@@ -17,7 +17,7 @@ namespace Steward.Discord
 		private readonly CommandService _commands;
 		private readonly IServiceProvider _services;
 
-		private StewardContext _stewardContext { get; set; }
+		private readonly StewardContext _stewardContext;
 
 		public CommandHandler(IServiceProvider services, CommandService commands, DiscordSocketClient client, StewardContext stewardContext)
 		{
@@ -54,29 +54,6 @@ namespace Steward.Discord
 			if (!result.IsSuccess) await context.Channel.SendMessageAsync(result.ErrorReason);
 			//if (!result.IsSuccess) await context.Channel.SendMessageAsync(InsultList[new Random().Next(InsultList.Count)]);
 		}
-
-		private List<string> InsultList = new List<string>()
-		{
-			"YOU FOOL, YOU ABSOLUTE BUFFOON",
-			"I knew a Feudal season would be too complex for you smoothbrains",
-			"Fuck you",
-			"You're worse than those people with Sonic OCs",
-			"Your Father was a Hamster and your Mother Smelt of Elderberries!",
-			"You waste my time",
-			"I hate so many of the things you choose to be",
-			"Thou inbred bastard!",
-			"Oh, it's you again",
-			"Does Barry Manilow know that you raid his wardrobe?",
-			"Ugh",
-			"You type like old people fuck",
-			"You're what the French call: 'les incompetents'.",
-			"Were you always this stupid or did you take lessons?",
-			"Are you a special agent sent here to ruin my evening and possibly my entire life?",
-			"My disappointment is immeasurable, and my day is ruined",
-			"Imagine if the holocaust happened every 4 years like the olympics. I would prefer that than to talk with you for another second",
-			"Your birth was, and I do not say this lightly, worse than a 100 9/11's",
-			"That's going on my cringe compilation."
-		};
 
 		private async void NewProfile(ulong id)
 		{
