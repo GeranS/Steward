@@ -45,7 +45,7 @@ namespace Steward
 				Console.WriteLine("Command: " + x.Name.ToString());
 			}
 
-			await _client.SetGameAsync("v0.2");
+			await _client.SetGameAsync("v0_2");
 
 			//using (var host = new NancyHost(new Uri("http://localhost:1234")))
 			//{
@@ -70,6 +70,7 @@ namespace Steward
 			.AddSingleton<ActivityService>()
 			.AddSingleton<DeathService>()
 			.AddSingleton<CharacterService>()
+			.AddSingleton<HouseRoleManager>()
 			.AddDbContext<StewardContext>(ServiceLifetime.Transient)
 			.BuildServiceProvider();
 	}

@@ -26,6 +26,11 @@ namespace Steward.Services
 		{
 			var house = character.House;
 
+			if (house == null)
+			{
+				return null;
+			}
+
 			var guild = _client
 				.GetGuild(ulong.Parse(Properties.Resources.guildId));
 			
@@ -56,17 +61,9 @@ namespace Steward.Services
 			var allHouseRolesExceptNeededOne = new List<SocketRole>(allHouseRoles);
 			allHouseRolesExceptNeededOne.Remove(houseRole);
 
-			var rolesToBeRemoved = new List<SocketRole>();
-
 			var guildUser = guild.GetUser(ulong.Parse(character.DiscordUserId));
 
-			foreach (var unwantedHouseRole in allHouseRolesExceptNeededOne)
-			{
-				if (guildUser.Roles.Contains(unwantedHouseRole))
-				{
-					rolesToBeRemoved.Add(unwantedHouseRole);
-				}
-			}
+			var rolesToBeRemoved = allHouseRolesExceptNeededOne.Where(unwantedHouseRole => guildUser.Roles.Contains(unwantedHouseRole)).ToList();
 
 			try
 			{
