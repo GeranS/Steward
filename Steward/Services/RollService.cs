@@ -92,19 +92,19 @@ namespace Steward.Services
                 attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll} **!CRITICAL HIT!**";
 			}
 
-            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + {damageRollBonus} = {damageRoll}";
+            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) = {damageRoll}";
             if (attackTypeDamageBonus != 0 && crit)
             {
                 damageRollString =
-                    $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {damageRollBonus} + {attackTypeDamageBonus} from attack type = {damageRoll}";
+                    $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {attackTypeDamageBonus} from attack type = {damageRoll}";
             } else if (attackTypeHitBonus != 0)
             {
 				damageRollString =
-                    $"(1d{weapon.DieSize} = {damageRollRaw}) + {damageRollBonus} + {attackTypeDamageBonus} from attack type = {damageRoll}";
+                    $"(1d{weapon.DieSize} = {damageRollRaw}) + {attackTypeDamageBonus} from attack type = {damageRoll}";
 			}
             else if (crit)
             {
-				damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {damageRollBonus} = {damageRoll}";
+				damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit = {damageRoll}";
 			}
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Melee: {weapon.WeaponName} ({attackType}) by {character.CharacterName}");
@@ -150,7 +150,7 @@ namespace Steward.Services
             var damageRollString = $"(1d{weapon.DieSize} = {rawDamageRoll})";
             if (crit)
                 damageRollString += " * 2";
-            damageRollString += $" + {damageRollBonus} = {damageRoll}";
+            damageRollString += $" = {damageRoll}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Ranged: {weapon.WeaponName}");
 
