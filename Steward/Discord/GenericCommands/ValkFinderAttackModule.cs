@@ -59,6 +59,7 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("melee")]
+		[RequireActiveCharacter]
 		public async Task AttackWithMeleeWeapon(string attackType = "normal", string weaponName = null)
 		{
 			var activeCharacter =
@@ -68,12 +69,6 @@ namespace Steward.Discord.GenericCommands
 					.Include(c => c.CharacterTraits)
 					.ThenInclude(ct => ct.Trait)
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
-
-			if (activeCharacter == null || !activeCharacter.IsAlive())
-			{
-				await ReplyAsync($"You don't have a living character.");
-				return;
-			}
 
 			ValkFinderWeapon valkFinderWeapon = null;
 
@@ -97,6 +92,7 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("ranged")]
+		[RequireActiveCharacter]
 		public async Task AttackWithRangedWeapon(int range, string weaponName = null)
 		{
 			if (range < 0)
@@ -112,12 +108,6 @@ namespace Steward.Discord.GenericCommands
 					.Include(c => c.CharacterTraits)
 					.ThenInclude(ct => ct.Trait)
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
-
-			if (activeCharacter == null || !activeCharacter.IsAlive())
-			{
-				await ReplyAsync($"You don't have a living character.");
-				return;
-			}
 
 			ValkFinderWeapon valkFinderWeapon = null;
 
