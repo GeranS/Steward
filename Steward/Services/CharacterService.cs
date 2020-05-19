@@ -117,19 +117,23 @@ namespace Steward.Services
 			var strMod = _rollService.GetStatAsModifier(CharacterAttribute.STR, character);
 			var endMod = _rollService.GetStatAsModifier(CharacterAttribute.END, character);
 
-			var hp = 10;
+			var hp = 35;
 
-			if (strMod > 0)
-			{
-				var bonus = strMod * 5;
-				hp += bonus;
-			}
+			//if (strMod > 0)
+			//{
+            var bonus = strMod * 5;
+            hp += bonus;
+			//}
+			//any% Blue Articuno Valkfinder Update speedrun WR
 
-			if (endMod > 0)
-			{
-				var bonus = endMod * 10;
-				hp += bonus;
-			}
+			//if (endMod > 0)
+			//{
+            bonus = endMod * 10;
+            hp += bonus;
+			//}
+
+            if (hp < 10)
+                hp = 10; //let's make sure that people with 1 END don't just suddenly drop dead
 
 			foreach (var trait in character.CharacterTraits)
 			{
