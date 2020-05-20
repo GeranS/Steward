@@ -24,10 +24,12 @@ namespace Steward.Services
 
         public EmbedBuilder BuildStaffActionMessage(StaffAction staffAction)
         {
+	        var submitter = _client.GetUser(ulong.Parse(staffAction.SubmitterId));
+
             var embedBuilder = new EmbedBuilder
             {
                 Color = Color.Purple,
-                Title = staffAction.ActionTitle + " - " + staffAction.StaffActionId.ToString(),
+                Title = staffAction.ActionTitle + " - " + staffAction.StaffActionId.ToString() + " - " + submitter.Username,
             };
 
             EmbedFieldBuilder embedFieldBuilder;
