@@ -10,16 +10,19 @@ using Microsoft.EntityFrameworkCore;
 using Steward.Context;
 using Steward.Context.Models;
 using Steward.Discord.CustomPreconditions;
+using Steward.Services;
 
 namespace Steward.Discord.GenericCommands
 {
 	public class HouseModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly StewardContext _stewardContext;
+		private readonly HouseRoleManager _houseRoleManager;
 
-		public HouseModule(StewardContext stewardContext)
+		public HouseModule(StewardContext stewardContext, HouseRoleManager houseRoleManager)
 		{
 			_stewardContext = stewardContext;
+			_houseRoleManager = houseRoleManager;
 		}
 
 		[Command("houses")]
@@ -49,7 +52,9 @@ namespace Steward.Discord.GenericCommands
 
 			if (houseName != null)
 			{
-				var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+				var house = _stewardContext.Houses
+					.Include(h => h.HouseOwner)
+					.SingleOrDefault(h => h.HouseName == houseName);
 
 				if (house == null)
 				{
@@ -155,9 +160,9 @@ namespace Steward.Discord.GenericCommands
 			// Doesn't need a null check, already done in RequireHouseOwner
 			var house = activeCharacter.House;
 
-			if (description.Length > 1800)
+			if (description.Length > 1000)
 			{
-				await ReplyAsync("Description has to be 1800 characters or less.");
+				await ReplyAsync("Description has to be 1000 characters or less.");
 				return;
 			}
 
@@ -273,8 +278,70 @@ namespace Steward.Discord.GenericCommands
 				_stewardContext.PlayerCharacters.Update(activeCharacter);
 				await _stewardContext.SaveChangesAsync();
 
+				await _houseRoleManager.UpdatePlayerHouseRole(activeCharacter, _stewardContext.Houses.ToList());
+
 				await ReplyAsync("Character moved to new house.");
 			}
+		}
+
+		[Command("link house role")]
+		[RequireStewardPermission]
+		public async Task LinkHouseRole(string houseName, [Remainder] SocketRole role)
+		{
+			var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+
+			if (house == null)
+			{
+				await ReplyAsync($"Could not find house {houseName}");
+				return;
+			}
+
+			if (house.HouseRoleId != null && house.HouseRoleId == role.Id.ToString())
+			{
+				await ReplyAsync("House is already linked to this role.");
+				return;
+			}
+
+			var roleIsAlreadyUsed = _stewardContext.Houses.Where(h => h.HouseRoleId == role.Id.ToString());
+
+			if (roleIsAlreadyUsed.Count() != 0)
+			{
+				await ReplyAsync("Role is already linked to a house.");
+				return;
+			}
+
+			house.HouseRoleId = role.Id.ToString();
+
+			_stewardContext.Houses.Update(house);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Role linked.");
+		}
+
+		[Command("unlink house role")]
+		[RequireStewardPermission]
+		public async Task UnlinkHouseRole(string houseName)
+		{
+			var house = _stewardContext.Houses.SingleOrDefault(h => h.HouseName == houseName);
+
+			if (house == null)
+			{
+				await ReplyAsync($"Could not find house {houseName}");
+				return;
+			}
+
+			if (house.HouseRoleId == null)
+			{
+				await ReplyAsync("House does not have a linked role.");
+				return;
+			}
+
+			house.HouseRoleId = null;
+
+			_stewardContext.Houses.Update(house);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Role unlinked.");
 		}
 	}
 }

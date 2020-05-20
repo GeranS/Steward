@@ -26,6 +26,8 @@ namespace Steward.Context.Models
 		public int HealthPoolBonus { get; set; } = 0;
 		public int AbilityPointBonus { get; set; } = 0;
 
+		public string HouseRoleId { get; set; }
+
 		public string HouseOwnerId { get; set; }
 		public PlayerCharacter HouseOwner { get; set; }
 

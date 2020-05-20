@@ -19,10 +19,13 @@ namespace Steward.Discord.AdminCommands
 	    private StewardContext _stewardContext { get; set; }
         private DeathService _deathService { get; set; }
 
-        public AdminModule(StewardContext stewardContext, DeathService deathService)
+		private readonly DiscordSocketClient _client;
+
+		public AdminModule(StewardContext stewardContext, DeathService deathService, DiscordSocketClient client)
         {
             _stewardContext = stewardContext;
             _deathService = deathService;
+			_client = client;
         }
 
         [Command("raise dead")]
@@ -176,5 +179,59 @@ namespace Steward.Discord.AdminCommands
 
 	        await ReplyAsync("Admin privileges have been removed.");
         }
+
+		[Command("list op")]
+		[RequireStewardPermission]
+		public async Task ListOp()
+		{
+			var DiscordUsers = await _stewardContext.DiscordUsers.ToListAsync();
+			var Message = "";
+
+			foreach (var DiscordUser in _stewardContext.DiscordUsers)
+			{
+				if (DiscordUser.CanUseAdminCommands == true)
+				{
+					
+					var UserName = _client.GetUser(ulong.Parse(DiscordUser.DiscordId)).ToString();
+					Message += UserName + " ; ";
+				}
+			}
+
+			await ReplyAsync(Message);
+		}
+
+		[Command("revive")]
+		[RequireStewardPermission]
+		public async Task revive(string characterId)
+		{
+			var deadCharacter =
+				_stewardContext.PlayerCharacters
+					.Include(c => c.DiscordUser)
+					.ThenInclude(du => du.Characters)
+					.SingleOrDefault(c => c.CharacterId == characterId && c.YearOfDeath!=null);
+
+			if (deadCharacter == null)
+			{
+				await ReplyAsync("Character could not be found.");
+				return;
+			}
+
+			var hasLivingCharacter = deadCharacter.DiscordUser.Characters.Where(c => c.YearOfDeath == null);
+
+			if (hasLivingCharacter.Count() != 0)
+			{
+				await ReplyAsync("User still has a living character.");
+				return;
+			}
+
+			deadCharacter.YearOfDeath = null;
+
+			_stewardContext.PlayerCharacters.Update(deadCharacter);
+			await _stewardContext.SaveChangesAsync();
+
+			//maybe delete message in graveyard but don't know how to do that
+
+			await ReplyAsync("The dead walk once more!");
+		}
     }
 }

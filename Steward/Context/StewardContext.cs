@@ -7,7 +7,7 @@ namespace Steward.Context
 	{
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer($"Server={Properties.Resources.dbIP};Database=steward;User Id={Properties.Resources.sqlUsername};Password={Properties.Resources.sqlpassword};");
+			optionsBuilder.UseSqlServer($"Server={Properties.Resources.dbIP};Database={Properties.Resources.databaseName};User Id={Properties.Resources.sqlUsername};Password={Properties.Resources.sqlpassword};");
 		}
 
 		public DbSet<CharacterTrait> CharacterTraits { get; set; } //linking table
@@ -16,6 +16,7 @@ namespace Steward.Context
 		public DbSet<House> Houses { get; set; }
 		public DbSet<PlayerCharacter> PlayerCharacters { get; set; }
 		public DbSet<StaffAction> StaffActions { get; set; }
+		public DbSet<StaffActionChannel> StaffActionChannels { get; set; }
 		public DbSet<Trait> Traits { get; set; }
 		public DbSet<UserMessageRecord> MessageRecords { get; set; }
 		public DbSet<ValkFinderWeapon> ValkFinderWeapons { get; set; }
@@ -197,22 +198,19 @@ namespace Steward.Context
 					{
 						WeaponName = "Sword",
 						IsRanged = false,
-						DieSize = 8,
-						DamageModifier = CharacterAttribute.STR
+						DieSize = 8
 					},
 					new ValkFinderWeapon()
 					{
 						WeaponName = "Dagger",
 						IsRanged = false,
-						DieSize = 6,
-						DamageModifier = CharacterAttribute.STR
+						DieSize = 6
 					},
 					new ValkFinderWeapon()
 					{
 						WeaponName = "Shortbow",
 						IsRanged = true,
-						DieSize = 8,
-						DamageModifier = CharacterAttribute.STR
+						DieSize = 8
 					}
 				});
 

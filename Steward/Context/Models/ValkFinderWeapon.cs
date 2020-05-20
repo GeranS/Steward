@@ -13,7 +13,5 @@ namespace Steward.Context.Models
 		public bool IsRanged { get; set; }
 		[Required]
 		public int DieSize { get; set; }
-		[Required]
-		public CharacterAttribute DamageModifier { get; set; }
 	}
 }

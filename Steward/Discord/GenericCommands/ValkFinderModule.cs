@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -20,15 +21,18 @@ namespace Steward.Discord.GenericCommands
 		private readonly RollService _rollService;
 		private readonly StewardContext _stewardContext;
 		private readonly CharacterService _characterService;
+		private readonly HouseRoleManager _houseRoleManager;
 
-		public ValkFinderModule(StewardContext c, RollService r, CharacterService characterService)
+		public ValkFinderModule(StewardContext c, RollService r, CharacterService characterService, HouseRoleManager houseRoleManager)
 		{
 			_rollService = r;
 			_stewardContext = c;
 			_characterService = characterService;
+			_houseRoleManager = houseRoleManager;
 		}
 		
 		[Command("roll")]
+		[RequireActiveCharacter]
 		public async Task RollStat(string stringAttribute)
 		{
 			if (!Enum.TryParse(stringAttribute, true, out CharacterAttribute attribute))
@@ -41,15 +45,11 @@ namespace Steward.Discord.GenericCommands
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
 				.ThenInclude(ct => ct.Trait)
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.House)
 				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
 			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
-
-			if (activeCharacter == null)
-			{
-				await ReplyAsync("Could not roll because you don't have an active character.");
-				return;
-			}
 
 			var rollResult = _rollService.RollPlayerStat(attribute, activeCharacter, 20);
 
@@ -64,22 +64,36 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
 
+		[Command("dodge")]
+		[RequireActiveCharacter]
+		public async Task RollDodge()
+		{
+			var discordUser = _stewardContext.DiscordUsers
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.CharacterTraits)
+				.ThenInclude(ct => ct.Trait)
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.House)
+				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+			var activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
+
+			var message = _rollService.RollPlayerDodge(activeCharacter);
+
+			await ReplyAsync(embed: message.Build());
+		}
+
 		[Command("bio")]
+		[RequireActiveCharacter]
 		public async Task SetBio(string bio)
 		{
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			if (activeCharacter == null)
+			if (bio.Length > 1000)
 			{
-				await ReplyAsync("Could not find a living character.");
-				return;
-			}
-
-			if (bio.Length > 1800)
-			{
-				await ReplyAsync("Bio is too long");
+				await ReplyAsync("Bio has to be 1000 characters or less.");
 				return;
 			}
 
@@ -164,11 +178,11 @@ namespace Steward.Discord.GenericCommands
 		[Command("create")]
 		[Summary("Creates a new character, can only be done if you don't have any living characters. Example: !create \"Olgilvie Maurice Wentworth\" \"Harcaster\" 12 14 8 8 8")]
 		public async Task CreateCharacter(
-			[Summary("The name if your character, use quotation marks around the name if it includes a space.")] string name, 
+			[Summary("The name of your character, use quotation marks around the name if it includes a space.")] string name, 
 			[Summary("The name of the house your character is part of.")] string houseName, 
 			[Summary("Strength")] int str,
-			[Summary("Dexterity")] int dex,
 			[Summary("Endurance")] int end,
+			[Summary("Dexterity")] int dex,
 			[Summary("Perception")] int per,
 			[Summary("Intelligence")] int intel)
 		{
@@ -240,6 +254,8 @@ namespace Steward.Discord.GenericCommands
 					PER = per,
 					INT = intel
 				};
+
+				await _houseRoleManager.UpdatePlayerHouseRole(newCharacter, _stewardContext.Houses.ToList());
 			}
 			else
 			{
@@ -256,12 +272,125 @@ namespace Steward.Discord.GenericCommands
 					INT = intel
 				};
 			}
-			
 
 			_stewardContext.PlayerCharacters.Add(newCharacter);
 			_stewardContext.SaveChanges();
 
 			await ReplyAsync($"Created character with the name {newCharacter.CharacterName}.");
+		}
+
+		[Command("delete character")]
+		[RequireStewardPermission]
+		public async Task DeleteCharacter(string id)
+		{
+			var character = _stewardContext.PlayerCharacters
+				.Include(c => c.CharacterTraits)
+				.Include(c => c.House)
+				.SingleOrDefault(c => c.CharacterId == id);
+
+			if (character == null)
+			{
+				await ReplyAsync("Could not find character.");
+				return;
+			}
+
+			character.House.HouseOwner = null;
+
+			_stewardContext.CharacterTraits.RemoveRange(character.CharacterTraits);
+			_stewardContext.PlayerCharacters.Remove(character);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Character has been deleted.");
+		}
+
+		[Command("change stats")]
+		[RequireStewardPermission]
+		public async Task ChangeCharacterStats(SocketGuildUser mention, 
+			int str, 
+			int end, 
+			int dex, 
+			int per,
+			int intel)
+		{
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
+
+			activeCharacter.STR = str;
+			activeCharacter.END = end;
+			activeCharacter.DEX = dex;
+			activeCharacter.PER = per;
+			activeCharacter.INT = intel;
+
+			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Updated character stats.");
+		}
+
+		[Command("change name")]
+		[RequireStewardPermission]
+		public async Task ChangeCharacterName(string newName, [Remainder] SocketGuildUser mention)
+		{
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.SingleOrDefault(c => c.DiscordUserId == mention.Id.ToString() && c.YearOfDeath == null);
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
+
+			var oldName = activeCharacter.CharacterName;
+
+			activeCharacter.CharacterName = newName;
+
+			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync($"Changed name from {oldName} to {newName}.");
+		}
+
+		[Command("admin history")]
+		[RequireStewardPermission]
+		public async Task ShowCharacterListWithId([Remainder]SocketGuildUser mention)
+		{
+			var discordUser = _stewardContext.DiscordUsers
+				.Include(du => du.Characters)
+				.SingleOrDefault(du => du.DiscordId == mention.Id.ToString());
+
+			if (discordUser == null)
+			{
+				await ReplyAsync("User does not have a profile.");
+				return;
+			}
+
+			if (discordUser.Characters.Count == 0)
+			{
+				await ReplyAsync("User has no characters.");
+				return;
+			}
+
+			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple);
+
+			var stringBuilder = new StringBuilder();
+
+			foreach (var character in discordUser.Characters)
+			{
+				stringBuilder.AppendLine(
+					$"{character.CharacterId} - {character.CharacterName} - Is alive: {character.IsAlive()}");
+			}
+
+			embedBuilder.AddField("Characters", stringBuilder.ToString());
+
+			await ReplyAsync(embed: embedBuilder.Build());
 		}
 
 		[Command("history")]
@@ -299,15 +428,15 @@ namespace Steward.Discord.GenericCommands
 			foreach (var character in sortedCharacters)
 			{
 				
-				if (activeCharacter.House != null)
+				if (character.House == null)
 				{
 					embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
-						$"{character.CharacterName} of House {activeCharacter.House.HouseName}");
+						$"{character.CharacterName}");
 				}
 				else
 				{
 					embedBuilder.AddField($"{character.YearOfBirth} - {character.YearOfDeath}",
-						$"{character.CharacterName}");
+						$"{character.CharacterName} of House {character.House.HouseName}");
 				}
 			}
 

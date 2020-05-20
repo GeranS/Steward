@@ -15,11 +15,13 @@ namespace Steward.Services
         private readonly DiscordSocketClient _client;
 
         private readonly StewardContext _stewardContext;
+        private readonly HouseRoleManager _houseRoleManager;
         
-        public DeathService(StewardContext stewardContext, DiscordSocketClient client)
+        public DeathService(StewardContext stewardContext, DiscordSocketClient client, HouseRoleManager houseRoleManager)
         {
             _client = client;
             _stewardContext = stewardContext;
+            _houseRoleManager = houseRoleManager;
         }
 
         public async Task Kill(ulong id, bool graveyardMessage, ISocketMessageChannel channel)
@@ -59,7 +61,9 @@ namespace Steward.Services
             }
 
             _stewardContext.PlayerCharacters.Update(activeCharacter);
-            _stewardContext.SaveChanges();
+            await _stewardContext.SaveChangesAsync();
+
+            await _houseRoleManager.UpdatePlayerHouseRole(activeCharacter, _stewardContext.Houses.ToList());
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Discord;
 using Discord.WebSocket;
@@ -20,75 +21,136 @@ namespace Steward.Services
 		}
 
 		public EmbedBuilder RollMeleeAttack(PlayerCharacter character, ValkFinderWeapon weapon, string attackType)
-		{
+        {
 
-			var attackTypeHitBonus = 0;
-			var attackTypeDamageBonus = 0;
+            var attackTypeHitBonus = 0;
+            var attackTypeDamageBonus = 0;
 
-			switch (attackType)
+            switch (attackType)
+            {
+                case "heavy":
+                    attackTypeHitBonus = 1;
+                    attackTypeDamageBonus = 1;
+                    break;
+                case "light":
+                    attackTypeHitBonus = -4;
+                    attackTypeDamageBonus = -2;
+                    break;
+                case "normal":
+                    break;
+                default:
+                    var embedBuilderError = new EmbedBuilder().WithColor(Color.Purple);
+                    embedBuilderError.AddField("Error", "Unknown attack type");
+                    return embedBuilderError;
+            }
+
+            var rnd = new Random();
+
+            var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
+            var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
+
+            var attackRollRaw = rnd.Next(1, 21);
+
+			var attackRoll = attackRollRaw + strMod + dexMod + attackTypeHitBonus;
+
+            if (attackRoll < 0)
+            {
+                attackRoll = 0;
+            }
+
+			bool crit = attackRollRaw == 20; //are we crittin'?
+
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
+            var damageRollRaw = rnd.Next(1, weapon.DieSize + 1);
+            var damageRoll = damageRollRaw + damageRollBonus + attackTypeDamageBonus;
+
+            var critRoll = 0;
+
+            if (crit)
+            {
+                critRoll = rnd.Next(1, weapon.DieSize + 1); //We crittin'.
+
+            }
+
+            damageRoll += critRoll;
+
+			if (damageRoll < 0)
+            {
+                damageRoll = 0;
+            }
+
+			//TODO: Clean this up into something modular, redefining the entire string each time just isn't maintainable.
+            var attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll}";
+            if (attackTypeHitBonus != 0 && crit)
+            {
+                attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll} **!CRITICAL HIT!**";
+            } else if (attackTypeHitBonus != 0)
 			{
-				case "heavy":
-					attackTypeHitBonus = 1;
-					attackTypeDamageBonus = 1;
-					break;
-				case "light":
-					attackTypeHitBonus = -1;
-					attackTypeDamageBonus = -1;
-					break;
-				case "normal":
-					break;
-				default:
-					var embedBuilderError = new EmbedBuilder().WithColor(Color.Purple);
-					embedBuilderError.AddField("Error", "Unknown attack type");
-					return embedBuilderError;
+				attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll}";
+            } else if (crit)
+            {
+                attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll} **!CRITICAL HIT!**";
 			}
 
-			var rnd = new Random();
-
-			var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
-			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
-
-			var attackRoll = rnd.Next(1, 20) + strMod + dexMod + attackTypeHitBonus;
-
-			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
-			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus + attackTypeDamageBonus;
-
-			var attackRollString = $"1d20 + {strMod + dexMod} = {attackRoll}";
-			if (attackTypeHitBonus != 0)
-			{
-				attackRollString = $"1d20 + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll}";
+            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) = {damageRoll}";
+            if (attackTypeDamageBonus != 0 && crit)
+            {
+                damageRollString =
+                    $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {attackTypeDamageBonus} from attack type = {damageRoll}";
+            } else if (attackTypeHitBonus != 0)
+            {
+				damageRollString =
+                    $"(1d{weapon.DieSize} = {damageRollRaw}) + {attackTypeDamageBonus} from attack type = {damageRoll}";
 			}
-			
-			var damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} = {damageRoll}";
-			if (attackTypeDamageBonus != 0)
-			{
-				damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} + {attackTypeDamageBonus} from attack type = {damageRoll}";
+            else if (crit)
+            {
+				damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit = {damageRoll}";
 			}
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Melee: {weapon.WeaponName} ({attackType}) by {character.CharacterName}");
 
-			embedBuilder.AddField("Attack Roll", attackRollString);
-			embedBuilder.AddField("Damage Roll", damageRollString);
+            embedBuilder.AddField("Attack Roll", attackRollString);
+            embedBuilder.AddField("Damage Roll", damageRollString);
 
-			return embedBuilder;
-		}
+            return embedBuilder;
+        }
 
-		public EmbedBuilder RollRangedAttack(PlayerCharacter character, ValkFinderWeapon weapon, int range)
+        public EmbedBuilder RollRangedAttack(PlayerCharacter character, ValkFinderWeapon weapon, int range)
 		{
 			var rnd = new Random();
 
 			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
-			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ―〃―
 
 			var rangePenalty = -(range / 2);
 
-			var attackRoll = rnd.Next(1, 20) + perMod + dexMod + rangePenalty;
+            var rawAttackRoll = rnd.Next(1, 21);
+			var attackRoll = rawAttackRoll + perMod + dexMod + rangePenalty;
+            var crit = rawAttackRoll == 20;
 
-			var damageRollBonus = GetStatAsModifier(weapon.DamageModifier, character);
-			var damageRoll = rnd.Next(1, weapon.DieSize) + damageRollBonus;
+			if (attackRoll < 0)
+			{
+				attackRoll = 0;
+			}
 
-			var attackRollString = $"1d20 + {perMod + dexMod} - {rangePenalty*-1} = {attackRoll}";
-			var damageRollString = $"1d{weapon.DieSize} + {damageRollBonus} = {damageRoll}";
+			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- ―〃―
+            var rawDamageRoll = rnd.Next(1, weapon.DieSize + 1);
+			var damageRoll =  rawDamageRoll + damageRollBonus;
+
+            if (crit)
+                damageRoll += rawDamageRoll;
+
+            if (damageRoll < 0)
+			{
+				damageRoll = 0;
+			}
+			var attackRollString = $"(1d20 = {rawAttackRoll}) + {perMod + dexMod} - {rangePenalty*-1} = {attackRoll}";
+            if (crit)
+                attackRollString += " **!CRITICAL HIT!**";
+            var damageRollString = $"(1d{weapon.DieSize} = {rawDamageRoll})";
+            if (crit)
+                damageRollString += " * 2";
+            damageRollString += $" = {damageRoll}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Ranged: {weapon.WeaponName}");
 
@@ -104,15 +166,15 @@ namespace Steward.Services
 
 			var rnd = new Random();
 
-			var roll = rnd.Next(1, dice) + mod;
+			var roll = rnd.Next(1, dice + 1) + mod;
 
 			if (mod >= 0)
 			{
-				return $"d{dice}+{mod} = [{roll}]";
+				return $"d{dice} + {mod} = [{roll}]";
 			}
 			else
 			{
-				return $"d{dice}{mod} = [{roll}]";
+				return $"d{dice} {mod} = [{roll}]";
 			}
 		}
 
@@ -135,6 +197,23 @@ namespace Steward.Services
 			};
 		}
 
+		public EmbedBuilder RollPlayerDodge(PlayerCharacter character)
+		{
+			var rnd = new Random();
+			
+			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
+			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+
+			var dodgeRoll = rnd.Next(1, 21) + perMod + dexMod;
+			var dodgeRollString = $"1d20 + {perMod} + {dexMod} = {dodgeRoll}";
+			
+			var embedBuilder = new EmbedBuilder().WithColor(Color.DarkPurple).WithTitle($"Dodge");
+
+			embedBuilder.AddField("Dodge Roll", dodgeRollString);
+
+			return embedBuilder;
+		}
+
 		public int CalculateStat(CharacterAttribute attribute, PlayerCharacter character)
 		{
 			var totalBonus = 0;
@@ -152,7 +231,7 @@ namespace Steward.Services
 					{
 						totalBonus += character.House.STR;
 					}
-					
+
 					baseStat = character.STR;
 					break;
 				case CharacterAttribute.DEX:
@@ -210,6 +289,11 @@ namespace Steward.Services
 			}
 
 			var endResult = baseStat + totalBonus;
+
+			if (endResult < 1)
+			{
+				endResult = 1;
+			}
 
 			return endResult;
 		}

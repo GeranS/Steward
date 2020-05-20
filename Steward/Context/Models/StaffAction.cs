@@ -21,8 +21,10 @@ namespace Steward.Context.Models
 		public string SubmitterId { get; set; }
 		public DiscordUser Submitter { get; set; }
 
-		public string? AssignedToId { get; set; }
-		public DiscordUser? AssignedTo { get; set; }
+		public string AssignedToId { get; set; }
+		public DiscordUser AssignedTo { get; set; }
+
+		public string MessageId { get; set; }
 	}
 
 	public enum StaffActionStatus

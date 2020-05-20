@@ -23,6 +23,8 @@ namespace Steward.Context.Models
 		[Required]
 		public string Description { get; set; }
 
+		public bool IsSecret { get; set; }
+
 		public List<CharacterTrait> PlayerTraits { get; set; }
 	}
 }
