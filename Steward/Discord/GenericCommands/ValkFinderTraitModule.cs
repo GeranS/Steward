@@ -182,6 +182,10 @@ namespace Steward.Discord.GenericCommands
 				{
 					bonusString += $"HP({trait.HealthPoolBonus}) ";
 				}
+				if (bonusString == "")
+				{
+					bonusString = "No Buffs";
+				}
 
 				embedBuilder.AddField(trait.Description, bonusString, false);
 			}

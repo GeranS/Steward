@@ -21,30 +21,9 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("help")]
-		public async Task Help(string commandName)
-		{
-			var commandList = (List<CommandInfo>)_commandService.Commands.GetEnumerator();
-
-			var command = commandList.Find(cl => cl.Aliases.Contains(commandName));
-		}
-
-		[Command("help")]
 		public async Task Help()
 		{
-			var commandList = _commandService.Commands;
-
-			var embedBuilder = new EmbedBuilder().WithTitle("Help").WithColor(Color.Purple);
-
-			var listOfCommandsString = "";
-
-			foreach (var commandInfo in commandList)
-			{
-				listOfCommandsString += $"{commandInfo.Name}\n";
-			}
-
-			embedBuilder.AddField("Commands", listOfCommandsString);
-
-			await ReplyAsync(embed: embedBuilder.Build());
+			await ReplyAsync("https://docs.google.com/document/d/1w7ICMGPEAHbktlFksIb9uhwwwAkb9obXHXdoAsT_nl8/edit?usp=sharing");
 		}
 	}
 }

@@ -196,6 +196,8 @@ namespace Steward.Discord.GenericCommands
 
 			_stewardContext.StaffActions.Update(action);
 			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("Action submitted.");
 		}
 
 		[Command("my actions")]
