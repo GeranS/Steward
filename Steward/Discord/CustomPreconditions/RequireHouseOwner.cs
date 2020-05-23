@@ -11,9 +11,11 @@ namespace Steward.Discord.CustomPreconditions
 {
 	public class RequireHouseOwner : PreconditionAttribute
 	{
+
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			var db = new StewardContext();
+			var db = services.GetService(typeof(StewardContext)) as StewardContext;
+
 			var activeCharacter =
 				db.PlayerCharacters
 					.Include(c => c.House)

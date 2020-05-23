@@ -1,11 +1,13 @@
 ﻿
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Resources;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nancy.Hosting.Self;
 using Steward.Context;
@@ -16,36 +18,49 @@ using Steward.Services;
 
 namespace Steward
 {
-	class Program
+	public class Program
 	{
 
 		private readonly CommandService _commands = new CommandService();
 		private readonly DiscordSocketClient _client = new DiscordSocketClient();
 		private IServiceProvider _services;
 
+		public static IConfigurationRoot Configuration { get; set; }
+
 		static void Main(string[] args) => new Program().Start().GetAwaiter().GetResult();
 
 		public async Task Start()
 		{
+			var configBuilder = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+
+			Configuration = configBuilder.Build();
+
 			_client.Log += Log;
 
 			_services = BuildServiceProvider();
 
-			await _client.LoginAsync(TokenType.Bot, Properties.Resources.token);
+			//var stewardConfig = Configuration.GetSection("StewardConfig").Get<StewardConfig>();
+			var stewardConfig = new StewardConfig();
+			Configuration.GetSection("StewardConfig").Bind(stewardConfig);
+
+			Console.WriteLine("Token:" + stewardConfig.Token);
+
+			await _client.LoginAsync(TokenType.Bot, stewardConfig.Token);
 			await _client.StartAsync();
 
 			new CommandHandler(_services, _commands, _client, _services.GetService<StewardContext>());
 
 			await _commands.AddModulesAsync(
-			assembly: Assembly.GetEntryAssembly(), 
+			assembly: Assembly.GetEntryAssembly(),
 			services: _services);
 
-			foreach(var x in _commands.Commands)
+			foreach (var x in _commands.Commands)
 			{
 				Console.WriteLine("Command: " + x.Name.ToString());
 			}
 
-			await _client.SetGameAsync("v0_2");
+			await _client.SetGameAsync(Configuration["Version"]);
 
 			//using (var host = new NancyHost(new Uri("http://localhost:1234")))
 			//{
@@ -63,16 +78,27 @@ namespace Steward
 			return Task.CompletedTask;
 		}
 
-		public IServiceProvider BuildServiceProvider() => new ServiceCollection()
-			.AddSingleton(_client)
+		public IServiceProvider BuildServiceProvider()
+		{
+			var services = new ServiceCollection();
+
+			services.AddOptions();
+
+			services.Configure<StewardConfig>(Configuration.GetSection("StewardConfig"));
+
+			services.AddSingleton(_client)
 			.AddSingleton(_commands)
 			.AddSingleton<RollService>()
 			.AddSingleton<ActivityService>()
 			.AddSingleton<DeathService>()
 			.AddSingleton<CharacterService>()
 			.AddSingleton<HouseRoleManager>()
+			.AddSingleton<GameActivityService>()
 			.AddSingleton<StaffActionService>()
 			.AddDbContext<StewardContext>(ServiceLifetime.Transient)
 			.BuildServiceProvider();
+
+			return services.BuildServiceProvider();
+		}
 	}
 }

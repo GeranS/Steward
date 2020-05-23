@@ -1,13 +1,22 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Steward.Context.Models;
 
 namespace Steward.Context
 {
 	public class StewardContext : DbContext
 	{
+		private readonly IOptions<StewardConfig> _config;
+
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer($"Server={Properties.Resources.dbIP};Database={Properties.Resources.databaseName};User Id={Properties.Resources.sqlUsername};Password={Properties.Resources.sqlpassword};");
+			optionsBuilder.UseSqlServer($"Server={_config.Value.DatabaseIp};Database={_config.Value.DatabaseName};User Id={_config.Value.SqlUsername};Password={_config.Value.SqlPassword};");
+		}
+
+		public StewardContext(IOptions<StewardConfig> config)
+		{
+			_config = config;
 		}
 
 		public DbSet<CharacterTrait> CharacterTraits { get; set; } //linking table
