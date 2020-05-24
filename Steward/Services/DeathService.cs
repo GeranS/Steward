@@ -24,6 +24,54 @@ namespace Steward.Services
             _houseRoleManager = houseRoleManager;
         }
 
+        public async Task PerformOldAgeCalculation(PlayerCharacter character, int startYear, int endYear)
+        {
+	        for (var year = startYear; year > endYear +1 ; year++)
+	        {
+		        var age = character.GetAge(year);
+
+		        var yearsOver60 = age - 60;
+
+		        var chanceOfDeath = yearsOver60 * 2;
+
+                //Cap of 10%
+		        if (chanceOfDeath > 10) chanceOfDeath = 10;
+
+                var randomValue = new Random().Next(100);
+
+                if (randomValue < chanceOfDeath)
+                {
+	                var timer = new CharacterDeathTimer()
+	                {
+                        PlayerCharacter = character,
+                        YearOfDeath = year,
+                        DeathTime = DateTime.UtcNow.AddDays(1)
+	                };
+	                break;
+                }
+	        }
+        }
+
+        private async Task SendGraveyardMessage(PlayerCharacter activeCharacter)
+        {
+	        var graveYards = _stewardContext.Graveyards.ToList();
+
+            var message = $"{activeCharacter.CharacterName} {activeCharacter.YearOfBirth} - {activeCharacter.YearOfDeath}";
+
+	        foreach (var graveyardChannel in graveYards.Select(graveyard => _client.GetChannel(ulong.Parse(graveyard.ChannelId)) as SocketTextChannel))
+	        {
+		        try
+		        {
+			        await graveyardChannel.SendMessageAsync(message);
+		        }
+		        catch (NullReferenceException e)
+		        {
+			        Console.WriteLine(e.StackTrace);
+			        //nothing, I just don't want it to crash the command
+		        }
+	        }
+        }
+
         public async Task Kill(ulong id, bool graveyardMessage, ISocketMessageChannel channel)
         {
 	        var activeCharacter =
@@ -36,28 +84,13 @@ namespace Steward.Services
 	            return;
             }
 
-	        var graveYards = _stewardContext.Graveyards.ToList();
-
-	        var year = _stewardContext.Year.SingleOrDefault();
+            var year = _stewardContext.Year.SingleOrDefault();
 
             activeCharacter.YearOfDeath = year.CurrentYear.ToString();
 
             if (graveyardMessage)
             {
-	            var message = $"{activeCharacter.CharacterName} {activeCharacter.YearOfBirth} - {activeCharacter.YearOfDeath}";
-
-	            foreach (var graveyardChannel in graveYards.Select(graveyard => _client.GetChannel(ulong.Parse(graveyard.ChannelId)) as SocketTextChannel))
-	            {
-		            try
-		            {
-			            await graveyardChannel.SendMessageAsync(message);
-                    }
-		            catch(NullReferenceException e)
-		            {
-                        Console.WriteLine(e.StackTrace);
-                        //nothing, I just don't want it to crash the command
-		            }
-	            }
+	            await SendGraveyardMessage(activeCharacter);
             }
 
             _stewardContext.PlayerCharacters.Update(activeCharacter);
