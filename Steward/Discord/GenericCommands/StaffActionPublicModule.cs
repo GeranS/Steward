@@ -95,6 +95,8 @@ namespace Steward.Discord.GenericCommands
 				}
 			}
 
+			await _staffActionService.NotifyUser(staffAction);
+
 			await ReplyAsync("Response received.");
 		}
 
@@ -144,6 +146,10 @@ namespace Steward.Discord.GenericCommands
 					//nothing, I just don't want it to crash the command
 				}
 			}
+			await _staffActionService.NotifyUser(staffAction);
+
+			await _staffActionService.NotifyStaff(staffAction);
+
 			await ReplyAsync($"Asigned Staff Action to {mention}");
 		}
 

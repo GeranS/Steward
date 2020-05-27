@@ -65,5 +65,65 @@ namespace Steward.Services
 
             return embedBuilder;
         }
+
+        public async Task NotifyUser(StaffAction staffAction)
+        {
+            var submitter = _client.GetUser(ulong.Parse(staffAction.SubmitterId));
+            var embedBuilder = new EmbedBuilder
+            {
+                Color = Color.Purple,
+                Title = "Your Action has been updated to the following:",
+            };
+
+            embedBuilder.AddField(new EmbedFieldBuilder
+            {
+                Name = staffAction.ActionTitle + " - " + staffAction.StaffActionId.ToString(),
+                Value = staffAction.ActionDescription,
+                IsInline = false
+            });
+            embedBuilder.AddField(new EmbedFieldBuilder
+            {
+                Name = staffAction.Status.ToString() + " - Response:",
+                Value = staffAction.ActionResponse == null ? "None" : staffAction.ActionResponse 
+            });
+            embedBuilder.AddField(new EmbedFieldBuilder
+            {
+                Name = "Assigned to Staff: ",
+                Value = staffAction.AssignedToId == null ? "No Staff Assigned" : _client.GetUser(ulong.Parse(staffAction.AssignedToId)).Username
+            });
+
+            await submitter.SendMessageAsync("",false,embedBuilder.Build());
+        }
+
+        public async Task NotifyStaff(StaffAction staffAction)
+        {
+            var staff = _client.GetUser(ulong.Parse(staffAction.AssignedToId));
+            var embedBuilder = new EmbedBuilder
+            {
+                Color = Color.Purple,
+                Title = "You have been assigned to the following staff Action:",
+            };
+
+            embedBuilder.AddField(new EmbedFieldBuilder
+            {
+                Name = staffAction.ActionTitle + " - " + staffAction.StaffActionId.ToString(),
+                Value = staffAction.ActionDescription,
+                IsInline = false
+            });
+            embedBuilder.AddField(new EmbedFieldBuilder
+            {
+                Name = staffAction.Status.ToString() + " - Response:",
+                Value = staffAction.ActionResponse == null ? "None" : staffAction.ActionResponse
+            });
+            embedBuilder.AddField(new EmbedFieldBuilder
+            {
+                Name = "Assigned to Staff: ",
+                Value = staffAction.AssignedToId == null ? "No Staff Assigned" : _client.GetUser(ulong.Parse(staffAction.AssignedToId)).Username
+            });
+
+            await staff.SendMessageAsync("", false, embedBuilder.Build());
+        }
     }
+
+
 }
