@@ -92,7 +92,16 @@ namespace Steward.Services
                 Value = staffAction.AssignedToId == null ? "No Staff Assigned" : _client.GetUser(ulong.Parse(staffAction.AssignedToId)).Username
             });
 
-            await submitter.SendMessageAsync("",false,embedBuilder.Build());
+            try
+            {
+                await submitter.SendMessageAsync("", false, embedBuilder.Build());
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(e.StackTrace);
+                //nothing, I just don't want it to crash the command
+            }
+
         }
 
         public async Task NotifyStaff(StaffAction staffAction)
@@ -121,7 +130,16 @@ namespace Steward.Services
                 Value = staffAction.AssignedToId == null ? "No Staff Assigned" : _client.GetUser(ulong.Parse(staffAction.AssignedToId)).Username
             });
 
-            await staff.SendMessageAsync("", false, embedBuilder.Build());
+            try
+            {
+                await staff.SendMessageAsync("", false, embedBuilder.Build());
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(e.StackTrace);
+                //nothing, I just don't want it to crash the command
+            }
+            
         }
     }
 
