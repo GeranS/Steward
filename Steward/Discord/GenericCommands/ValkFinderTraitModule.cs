@@ -248,7 +248,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("traits")]
 		public async Task ShowTraits()
 		{
-			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && t.IsEducation == false);
+			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && !t.IsEducation);
 
 			var embedBuilder = new EmbedBuilder()
 				.WithColor(Color.Purple)
@@ -304,7 +304,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("eduactions")]
 		public async Task ShowEducations()
 		{
-			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && t.IsEducation == true);
+			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && t.IsEducation);
 
 			var embedBuilder = new EmbedBuilder()
 				.WithColor(Color.Purple)
@@ -402,6 +402,58 @@ namespace Steward.Discord.GenericCommands
 			await _stewardContext.SaveChangesAsync();
 
 			await ReplyAsync("Description of Trait Changed!");
+		}
+
+		[Command("trait update education")]
+		public async Task TraitIsEducation(string traitName)
+		{
+			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
+
+			if (trait == null)
+			{
+				await ReplyAsync($"Could not find a trait with the name {traitName}.");
+				return;
+			}
+
+			if (!trait.IsEducation)
+			{
+				trait.IsEducation = true;
+			}
+			else
+			{
+				trait.IsEducation = false;
+			}
+
+			_stewardContext.Traits.Update(trait);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("IsEducation of Trait updated!");
+		}
+
+		[Command("trait update secret")]
+		public async Task TraitIsSecret(string traitName)
+		{
+			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
+
+			if (trait == null)
+			{
+				await ReplyAsync($"Could not find a trait with the name {traitName}.");
+				return;
+			}
+
+			if (!trait.IsSecret)
+			{
+				trait.IsSecret = true;
+			}
+			else
+			{
+				trait.IsSecret = false;
+			}
+
+			_stewardContext.Traits.Update(trait);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync("IsEducation of Trait updated!");
 		}
 	}
 }
