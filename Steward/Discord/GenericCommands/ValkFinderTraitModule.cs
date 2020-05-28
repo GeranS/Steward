@@ -133,7 +133,7 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("education")]
-		public async Task education(string traitName)
+		public async Task Education(string traitName)
 		{
 			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
 
@@ -167,10 +167,8 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-				
-			
-
 			var traitAlreadyExistsList = activeCharacter.CharacterTraits.Where(ct => ct.Trait.IsEducation);
+
 			if (traitAlreadyExistsList.Count()>0)
 			{
 				await ReplyAsync("You already have an education trait!");
@@ -301,7 +299,7 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
 
-		[Command("eduactions")]
+		[Command("educations")]
 		public async Task ShowEducations()
 		{
 			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && t.IsEducation);
