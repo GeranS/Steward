@@ -60,7 +60,7 @@ namespace Steward
 				Console.WriteLine("Command: " + x.Name.ToString());
 			}
 
-			await _client.SetGameAsync(Configuration["Version"]);
+			await _client.SetGameAsync(stewardConfig.Version);
 
 			//using (var host = new NancyHost(new Uri("http://localhost:1234")))
 			//{
