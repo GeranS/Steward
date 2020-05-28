@@ -79,11 +79,10 @@ namespace Steward.Discord.GenericCommands
                 return;
             }
 
-            //check for items in sender inv
-            var senderInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == activeCharacter.CharacterId && (i.ValkFinderArmour == item || i.ValkFinderWeapon == item || i.ValkFinderItem == item));
+            
 
             //does sender have enough items?
-            if (senderInv == null || (senderInv.Amount <= amount))
+            if (!_inventoryService.checkInv(activeCharacter,itemName,amount))
             {
                 await ReplyAsync($"You don't have enough of {itemName} in you inventory to give {amount} away");
                 return;
@@ -91,7 +90,7 @@ namespace Steward.Discord.GenericCommands
 
             await _inventoryService.GiveItem(recievingCharacter, item, amount, type); //gives item to reciever
 
-            await _inventoryService.TakeItem(senderInv, item, amount, type); //takes item with sender inventory
+            await _inventoryService.TakeItem(activeCharacter, item, amount, type); //takes item with sender inventory
 
             await ReplyAsync($"{amount} of the {type} {itemName} has been given to {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}");
         }
@@ -122,7 +121,7 @@ namespace Steward.Discord.GenericCommands
                 return;
             }
 
-            var embedBuilder = _inventoryService.createInventory(activeCharacter);
+            var embedBuilder = _inventoryService.createInventoryEmbed(activeCharacter);
             await ReplyAsync(embed: embedBuilder.Build());
             
         }
