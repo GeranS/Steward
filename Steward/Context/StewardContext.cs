@@ -17,7 +17,7 @@ namespace Steward.Context
 			var stewardConfig = new StewardConfig();
 			configuration.GetSection("StewardConfig").Bind(stewardConfig);
 
-			optionsBuilder.UseSqlServer($"Server={stewardConfig.DatabaseIp};Database={stewardConfig.DatabaseName};User Id={stewardConfig.SqlUsername};Password={stewardConfig.SqlPassword};");
+			optionsBuilder.UseSqlServer($"Server={stewardConfig.DatabaseIp};Database={stewardConfig.DatabaseName};User Id={stewardConfig.SqlUsername};Password={stewardConfig.SqlPassword};MultipleActiveResultSets=true");
 		}
 
 		public DbSet<CharacterDeathTimer> CharacterDeathTimers { get; set; }

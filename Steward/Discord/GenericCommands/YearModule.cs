@@ -45,6 +45,8 @@ namespace Steward.Discord.GenericCommands
 			var charactersOver60AndAlive = _stewardContext.PlayerCharacters.Where(c =>
 				c.YearOfDeath == null && c.YearOfBirth < currentYear.CurrentYear - 60);
 
+			Console.WriteLine("Amount of characters checked: " + charactersOver60AndAlive.Count());
+
 			foreach (var character in charactersOver60AndAlive)
 			{
 				//-1, because else it'll check a year twice

@@ -131,6 +131,13 @@ namespace Steward.Discord.GenericCommands
 					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 			}
 
+			if (user == null)
+			{
+				await ReplyAsync(
+					"User does not have a profile yet. This will be created when they send a message for the first time.");
+				return;
+			}
+
 			var activeCharacter = user.Characters.FirstOrDefault(c => c.IsAlive());
 
 			if (activeCharacter == null)
