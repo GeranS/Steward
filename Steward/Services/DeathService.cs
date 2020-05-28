@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Steward.Services
@@ -22,6 +23,30 @@ namespace Steward.Services
             _client = client;
             _stewardContext = stewardContext;
             _houseRoleManager = houseRoleManager;
+
+            StartOldAgeCheckerTimer();
+        }
+
+        private void StartOldAgeCheckerTimer()
+        {
+            var timer = new Timer(30000);
+            timer.Elapsed += OldAgeDeathCheck;
+        }
+
+        private async void OldAgeDeathCheck(Object source, ElapsedEventArgs e)
+        {
+	        var charactersToKill = _stewardContext.CharacterDeathTimers
+		        .Include(cdt => cdt.PlayerCharacter)
+		        .Where(cdt => cdt.DeathTime < DateTime.UtcNow);
+
+	        foreach (var characterTimer in charactersToKill)
+	        {
+		        characterTimer.PlayerCharacter.YearOfDeath = characterTimer.YearOfDeath.ToString();
+
+		        _stewardContext.PlayerCharacters.Update(characterTimer.PlayerCharacter);
+		        await _stewardContext.SaveChangesAsync();
+		        await SendGraveyardMessage(characterTimer.PlayerCharacter);
+	        }
         }
 
         public async Task PerformOldAgeCalculation(PlayerCharacter character, int startYear, int endYear)
