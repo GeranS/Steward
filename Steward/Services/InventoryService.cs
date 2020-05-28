@@ -58,8 +58,9 @@ namespace Steward.Services
             await _stewardContext.SaveChangesAsync();
         }
 
-        public async Task TakeItem(CharacterInventory victimInv, object item, int amount, string type)
+        public async Task TakeItem(PlayerCharacter victimChar, object item, int amount, string type)
         {
+            var victimInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == victimChar.CharacterId && (i.ValkFinderArmour == item || i.ValkFinderWeapon == item || i.ValkFinderItem == item));
             victimInv.Amount -= amount;
             if (victimInv.Amount <= 0) //if its zero delete the inventory
             {
@@ -72,7 +73,7 @@ namespace Steward.Services
             await _stewardContext.SaveChangesAsync();
         }
 
-        public EmbedBuilder createInventory(PlayerCharacter character)
+        public EmbedBuilder createInventoryEmbed(PlayerCharacter character)
         {
             var characterInventory = _stewardContext.CharacterInventories.ToList().Where(i => i.PlayerCharacterId == character.CharacterId);
             var embedBuilder = new EmbedBuilder()
@@ -118,6 +119,20 @@ namespace Steward.Services
                 embedBuilder.AddField("Empty", "Your Inventory is empty!");
             }
             return embedBuilder;
+        }
+
+        public bool checkInv(PlayerCharacter character, string itemName, int amount)
+        {
+            //check for items in sender inv
+            var senderInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && (i.ValkFinderArmour.ArmourName == itemName || i.ValkFinderWeapon.WeaponName == itemName || i.ValkFinderItem.ItemName == itemName));
+
+            //does sender have enough items?
+            if (senderInv == null || (senderInv.Amount <= amount))
+            {
+                
+                return false;
+            }
+            return true;
         }
 
     }
