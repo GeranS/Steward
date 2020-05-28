@@ -25,5 +25,33 @@ namespace Steward.Discord.GenericCommands
         }
 
 
+        [Command("add item")]
+        [RequireStewardPermission]
+        public async Task AddItem(string name, string description)
+        {
+            if (name.Length > 100)
+            {
+                await ReplyAsync("Item name can't be longer than 100 characters.");
+                return;
+            }
+            if (description.Length > 500)
+            {
+                await ReplyAsync("Item description can't be longer than 500 characters.");
+                return;
+            }
+
+            var newItem = new ValkFinderItem()
+            {
+                ItemName = name,
+                ItemDescription = description
+            };
+
+            _stewardContext.ValkFinderItems.Add(newItem);
+            await _stewardContext.SaveChangesAsync();
+
+            await ReplyAsync("Item added.");
+        }
+
+
     }
 }
