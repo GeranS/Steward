@@ -21,5 +21,15 @@ namespace Steward.Context.Models
 		public int HitBonus { get; set; }
 		public bool IsUnique { get; set; }
 
+		public WeaponTrait WeaponTrait { get; set; }
+
+
+
+	}
+
+	public enum WeaponTrait
+	{
+		Finesse,
+		None
 	}
 }

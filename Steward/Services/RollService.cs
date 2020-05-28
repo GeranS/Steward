@@ -49,9 +49,15 @@ namespace Steward.Services
             var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
             var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
 
+			if (weapon.WeaponTrait == WeaponTrait.Finesse)
+			{
+				strMod = 0;
+				dexMod = GetStatAsModifier(CharacterAttribute.DEX, character); 
+			}
+
             var attackRollRaw = rnd.Next(1, 21);
 
-			var attackRoll = attackRollRaw + strMod + dexMod + attackTypeHitBonus;
+			var attackRoll = attackRollRaw + strMod + dexMod + attackTypeHitBonus + weapon.HitBonus;
 
             if (attackRoll < 0)
             {
@@ -60,52 +66,55 @@ namespace Steward.Services
 
 			bool crit = attackRollRaw == 20; //are we crittin'?
 
-			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- Leaving this commented out so this can be re-implemented if we ever need to do so.
-            var damageRollRaw = rnd.Next(1, weapon.DieSize + 1);
-            var damageRoll = damageRollRaw + damageRollBonus + attackTypeDamageBonus;
+			int[] damageRollsRaw = new int[0];
+			for(int i = 1; i <= weapon.DamageDieAmount + 1;i++)
+			{
+				damageRollsRaw.Append(rnd.Next(1, weapon.DamageDieSize + 1));
+			}
 
-            var critRoll = 0;
-
-            if (crit)
-            {
-                critRoll = rnd.Next(1, weapon.DieSize + 1); //We crittin'.
-
-            }
-
-            damageRoll += critRoll;
-
-			if (damageRoll < 0)
-            {
-                damageRoll = 0;
-            }
+			int[] critRolls = new int[0];
+			if (crit)
+			{
+				critRolls.Append(rnd.Next(1, weapon.DamageDieSize + 1));
+			}
+			var damage = damageRollsRaw.Sum() + weapon.DamageBonus + attackTypeDamageBonus +critRolls.Sum();
 
 			//TODO: Clean this up into something modular, redefining the entire string each time just isn't maintainable.
-            var attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll}";
-            if (attackTypeHitBonus != 0 && crit)
-            {
-                attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll} **!CRITICAL HIT!**";
-            } else if (attackTypeHitBonus != 0)
+			//Done: cleaned up into something modular
+            var attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod}";
+			if (attackTypeHitBonus != 0)
 			{
-				attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} + {attackTypeHitBonus} from attack type = {attackRoll}";
-            } else if (crit)
-            {
-                attackRollString = $"(1d20 = {attackRollRaw}) + {strMod + dexMod} = {attackRoll} **!CRITICAL HIT!**";
+				attackRollString += $" + {attackTypeHitBonus} from attack type";
+			}
+			if (weapon.HitBonus != 0)
+			{
+				attackRollString += $" + {weapon.HitBonus} from weapon";
+			}
+			attackRollString += $" = {attackRoll}";
+
+			if (crit)
+			{
+				attackRollString += " **!Critical Hit!**";
+			}
+            
+			var damageRollsRawString = string.Join(" + ",damageRollsRaw);
+			var critRollsString = string.Join(" + ", critRolls);
+			var damageRollString = $"({weapon.DamageDieAmount}d{weapon.DamageDieSize} = {damageRollsRawString})";
+			if (crit)
+			{
+				damageRollString += $" + ({weapon.DamageDieAmount}d{weapon.DamageDieSize} = {critRollsString}) from crit";
 			}
 
-            var damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) = {damageRoll}";
-            if (attackTypeDamageBonus != 0 && crit)
-            {
-                damageRollString =
-                    $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit + {attackTypeDamageBonus} from attack type = {damageRoll}";
-            } else if (attackTypeHitBonus != 0)
-            {
-				damageRollString =
-                    $"(1d{weapon.DieSize} = {damageRollRaw}) + {attackTypeDamageBonus} from attack type = {damageRoll}";
+			if (attackTypeDamageBonus!= 0)
+			{
+				damageRollString += $" + {attackTypeDamageBonus} from attack type";
 			}
-            else if (crit)
-            {
-				damageRollString = $"(1d{weapon.DieSize} = {damageRollRaw}) + (1d{weapon.DieSize} = {critRoll}) from crit = {damageRoll}";
+
+			if (weapon.DamageBonus != 0)
+			{
+				damageRollString += $" + {weapon.DamageBonus} from weapon";
 			}
+			damageRollString += $" = {damage}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Melee: {weapon.WeaponName} ({attackType}) by {character.CharacterName}");
 
@@ -120,21 +129,21 @@ namespace Steward.Services
 			var rnd = new Random();
 
 			var perMod = GetStatAsModifier(CharacterAttribute.PER, character);
-			var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ―〃―
+			var dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
 
-			var rangePenalty = -(range / 2);
+			var rangePenalty = 0; //-(range / 2);
 
-            var rawAttackRoll = rnd.Next(1, 21);
-			var attackRoll = rawAttackRoll + perMod + dexMod + rangePenalty;
-            var crit = rawAttackRoll == 20;
+            var attackRollRaw = rnd.Next(1, 21);
+			var attackRoll = attackRollRaw + perMod + dexMod + rangePenalty + weapon.HitBonus;
+            var crit = attackRollRaw == 20;
 
-			if (attackRoll < 0)
+			/*if (attackRoll < 0)
 			{
 				attackRoll = 0;
 			}
 
 			var damageRollBonus = 0; //GetStatAsModifier(weapon.DamageModifier, character); -- ―〃―
-            var rawDamageRoll = rnd.Next(1, weapon.DieSize + 1);
+            var rawDamageRoll = rnd.Next(1, weapon.DamageDieSize + 1);
 			var damageRoll =  rawDamageRoll + damageRollBonus;
 
             if (crit)
@@ -143,14 +152,45 @@ namespace Steward.Services
             if (damageRoll < 0)
 			{
 				damageRoll = 0;
+			}*/
+
+			int[] damageRollsRaw = new int[0];
+			for (int i = 1; i <= weapon.DamageDieAmount + 1; i++)
+			{
+				damageRollsRaw.Append(rnd.Next(1, weapon.DamageDieSize + 1));
 			}
-			var attackRollString = $"(1d20 = {rawAttackRoll}) + {perMod + dexMod} - {rangePenalty*-1} = {attackRoll}";
-            if (crit)
-                attackRollString += " **!CRITICAL HIT!**";
-            var damageRollString = $"(1d{weapon.DieSize} = {rawDamageRoll})";
-            if (crit)
-                damageRollString += " * 2";
-            damageRollString += $" = {damageRoll}";
+
+			var damage = damageRollsRaw.Sum() + weapon.DamageBonus;
+			if (crit)
+			{
+				damage = damageRollsRaw.Sum() * 2 + weapon.DamageBonus;
+			}
+
+			var attackRollString = $"(1d20 = {attackRollRaw}) + {perMod + dexMod}";
+			if (weapon.HitBonus != 0)
+			{
+				attackRollString += $" + {weapon.HitBonus} from weapon";
+			}
+			attackRollString += $" = {attackRoll}";
+
+			if (crit)
+			{
+				attackRollString += " **!Critical Hit!**";
+			}
+
+			var damageRollsRawString = string.Join(" + ", damageRollsRaw);
+			var damageRollString = $"({weapon.DamageDieAmount}d{weapon.DamageDieSize} = {damageRollsRawString})";
+			if (crit)
+			{
+
+				damageRollString += $" * 2 from crit";
+			}
+
+			if (weapon.DamageBonus != 0)
+			{
+				damageRollString += $" + {weapon.DamageBonus} from weapon";
+			}
+			damageRollString += $" = {damage}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Ranged: {weapon.WeaponName}");
 

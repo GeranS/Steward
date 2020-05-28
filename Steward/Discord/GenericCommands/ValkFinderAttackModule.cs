@@ -143,13 +143,13 @@ namespace Steward.Discord.GenericCommands
 
 			foreach (var weapon in sortedValkFinderWeapons)
 			{
-				if (weapon.IsRanged)
+				if (weapon.IsRanged && !weapon.IsUnique)
 				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}: 1d{weapon.DieSize} ranged");
+					stringBuilder.AppendLine($"{weapon.WeaponName}: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged");
 				}
-				else
+				else if (!weapon.IsRanged && !weapon.IsUnique)
 				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}: 1d{weapon.DieSize} melee");
+					stringBuilder.AppendLine($"{weapon.WeaponName}: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee");
 				}
 			}
 
@@ -160,7 +160,7 @@ namespace Steward.Discord.GenericCommands
 
 		[Command("add weapon")]
 		[RequireStewardPermission]
-		public async Task AddWeapon(string name, string rangedOrMelee, int dieSize)
+		public async Task AddWeapon(string name, string rangedOrMelee, string damage, int hitbonus, string weaponTraitString = "None",bool unique = false)
 		{
 			if (name.Length > 100)
 			{
@@ -173,10 +173,29 @@ namespace Steward.Discord.GenericCommands
 				await ReplyAsync("Weapon has to be either melee or ranged.");
 				return;
 			}
+			var damageDieAmount = 0;
+			var damageDieSize = 0;
+			var damageBonus = 0;
 
-			if (dieSize < 2 || dieSize > 20)
+			try
 			{
-				await ReplyAsync("The die size has to be within the 2 to 20 range.");
+				var pattern = @"(\d+)d(\d+)([+-])(\d+)";
+				foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(damage,pattern))
+				{
+					damageDieAmount = Int32.Parse(m.Groups[1].Value);
+					damageDieSize = Int32.Parse(m.Groups[2].Value);
+					damageBonus = Int32.Parse(m.Groups[3].Value + m.Groups[4].Value);
+				}
+			}
+			catch
+			{
+				await ReplyAsync($"{damage}: is not a valid damage die and modifier");
+				return;
+			}
+
+			if (!Enum.TryParse(weaponTraitString, true, out WeaponTrait weaponTrait))
+			{
+				await ReplyAsync("Not a valid attribute.");
 				return;
 			}
 
@@ -192,8 +211,13 @@ namespace Steward.Discord.GenericCommands
 			var newWeapon = new ValkFinderWeapon()
 			{
 				WeaponName = name,
-				DieSize = dieSize,
-				IsRanged = rangedOrMelee == "ranged"
+				DamageDieAmount = damageDieAmount,
+				DamageDieSize = damageDieSize,
+				DamageBonus = damageBonus,
+				HitBonus = hitbonus,
+				IsRanged = rangedOrMelee == "ranged",
+				IsUnique = unique,
+				WeaponTrait = weaponTrait
 			};
 
 			_stewardContext.ValkFinderWeapons.Add(newWeapon);
