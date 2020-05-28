@@ -135,7 +135,7 @@ namespace Steward.Discord.GenericCommands
 		{
 			var embedBuilder = new EmbedBuilder();
 
-			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList();
+			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList().Where(w => !w.IsUnique);
 
 			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
 
@@ -143,11 +143,11 @@ namespace Steward.Discord.GenericCommands
 
 			foreach (var weapon in sortedValkFinderWeapons)
 			{
-				if (weapon.IsRanged && !weapon.IsUnique)
+				if (weapon.IsRanged)
 				{
 					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
 				}
-				else if (!weapon.IsRanged && !weapon.IsUnique)
+				else if (!weapon.IsRanged)
 				{
 					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
 				}
@@ -164,7 +164,7 @@ namespace Steward.Discord.GenericCommands
 		{
 			var embedBuilder = new EmbedBuilder();
 
-			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList();
+			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList().Where(w => w.IsUnique);
 
 			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
 
@@ -172,11 +172,11 @@ namespace Steward.Discord.GenericCommands
 
 			foreach (var weapon in sortedValkFinderWeapons)
 			{
-				if (weapon.IsRanged && weapon.IsUnique)
+				if (weapon.IsRanged)
 				{
 					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
 				}
-				else if (!weapon.IsRanged && weapon.IsUnique)
+				else if (!weapon.IsRanged)
 				{
 					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
 				}

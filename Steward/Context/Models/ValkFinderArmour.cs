@@ -9,6 +9,7 @@ namespace Steward.Context.Models
     {
         [Key]
         public string ValkFinderArmourId { get; set; }
+        public string ArmourName { get; set; }
         public int ArmourClassBonus { get; set; }
         public int DexCost { get; set; }
         public bool IsUnique { get; set; }

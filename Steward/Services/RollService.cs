@@ -124,7 +124,7 @@ namespace Steward.Services
             return embedBuilder;
         }
 
-        public EmbedBuilder RollRangedAttack(PlayerCharacter character, ValkFinderWeapon weapon, int range)
+        public EmbedBuilder RollRangedAttack(PlayerCharacter character, ValkFinderWeapon weapon, int range = 0)
 		{
 			var rnd = new Random();
 
