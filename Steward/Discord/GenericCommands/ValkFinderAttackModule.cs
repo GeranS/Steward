@@ -145,11 +145,40 @@ namespace Steward.Discord.GenericCommands
 			{
 				if (weapon.IsRanged && !weapon.IsUnique)
 				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged");
+					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
 				}
 				else if (!weapon.IsRanged && !weapon.IsUnique)
 				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee");
+					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+				}
+			}
+
+			embedBuilder.AddField("Weapons", stringBuilder.ToString());
+
+			await ReplyAsync(embed: embedBuilder.Build());
+		}
+
+		[Command("weapons unique")]
+		[RequireStewardPermission]
+		public async Task WeaponUniqueList()
+		{
+			var embedBuilder = new EmbedBuilder();
+
+			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList();
+
+			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
+
+			var stringBuilder = new StringBuilder();
+
+			foreach (var weapon in sortedValkFinderWeapons)
+			{
+				if (weapon.IsRanged && weapon.IsUnique)
+				{
+					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+				}
+				else if (!weapon.IsRanged && weapon.IsUnique)
+				{
+					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
 				}
 			}
 
@@ -225,5 +254,6 @@ namespace Steward.Discord.GenericCommands
 
 			await ReplyAsync("Weapon added.");
 		}
+
 	}
 }
