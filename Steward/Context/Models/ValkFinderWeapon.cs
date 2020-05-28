@@ -8,10 +8,18 @@ namespace Steward.Context.Models
 	public class ValkFinderWeapon
 	{
 		[Key]
+		public string ValkFinderWeaponId { get; set; }
+		[Required]
 		public string WeaponName { get; set; }
+		public string WeaponDescription { get; set; }
 		[Required]
 		public bool IsRanged { get; set; }
 		[Required]
-		public int DieSize { get; set; }
+		public int DamageDieSize { get; set; }
+		public int DamageDieAmount { get; set; }
+		public int DamageBonus { get; set; }
+		public int HitBonus { get; set; }
+		public bool IsUnique { get; set; }
+
 	}
 }
