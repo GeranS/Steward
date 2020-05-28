@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Steward.Context.Models;
 
 namespace Steward.Context
@@ -7,9 +9,18 @@ namespace Steward.Context
 	{
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer($"Server={Properties.Resources.dbIP};Database={Properties.Resources.databaseName};User Id={Properties.Resources.sqlUsername};Password={Properties.Resources.sqlpassword};");
+			var configBuilder = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+
+			var configuration = configBuilder.Build();
+
+			var stewardConfig = new StewardConfig();
+			configuration.GetSection("StewardConfig").Bind(stewardConfig);
+
+			optionsBuilder.UseSqlServer($"Server={stewardConfig.DatabaseIp};Database={stewardConfig.DatabaseName};User Id={stewardConfig.SqlUsername};Password={stewardConfig.SqlPassword};MultipleActiveResultSets=true");
 		}
 
+		public DbSet<CharacterDeathTimer> CharacterDeathTimers { get; set; }
 		public DbSet<CharacterTrait> CharacterTraits { get; set; } //linking table
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
 		public DbSet<Graveyard> Graveyards { get; set; }
@@ -24,6 +35,11 @@ namespace Steward.Context
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			modelBuilder.Entity<CharacterDeathTimer>()
+				.HasOne(cdt => cdt.PlayerCharacter)
+				.WithOne()
+				.HasForeignKey<CharacterDeathTimer>(cdt => cdt.PlayerCharacterId);
+
 			modelBuilder.Entity<UserMessageRecord>()
 				.HasOne(ms => ms.User)
 				.WithMany(d => d.MessageRecords)

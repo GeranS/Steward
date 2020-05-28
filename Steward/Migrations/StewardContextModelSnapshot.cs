@@ -19,6 +19,29 @@ namespace Steward.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("Steward.Context.Models.CharacterDeathTimer", b =>
+                {
+                    b.Property<string>("CharacterDeathTimerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DeathTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlayerCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("YearOfDeath")
+                        .HasColumnType("int");
+
+                    b.HasKey("CharacterDeathTimerId");
+
+                    b.HasIndex("PlayerCharacterId")
+                        .IsUnique()
+                        .HasFilter("[PlayerCharacterId] IS NOT NULL");
+
+                    b.ToTable("CharacterDeathTimers");
+                });
+
             modelBuilder.Entity("Steward.Context.Models.CharacterTrait", b =>
                 {
                     b.Property<string>("PlayerCharacterId")
@@ -378,6 +401,9 @@ namespace Steward.Migrations
                     b.Property<int>("INT")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsEducation")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsSecret")
                         .HasColumnType("bit");
 
@@ -402,6 +428,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = 0,
+                            IsEducation = false,
                             IsSecret = false,
                             PER = 1,
                             STR = -1
@@ -416,6 +443,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = -1,
+                            IsEducation = false,
                             IsSecret = false,
                             PER = 0,
                             STR = 1
@@ -430,6 +458,7 @@ namespace Steward.Migrations
                             END = 1,
                             HealthPoolBonus = 0,
                             INT = 0,
+                            IsEducation = false,
                             IsSecret = false,
                             PER = 0,
                             STR = 0
@@ -444,6 +473,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = 1,
+                            IsEducation = false,
                             IsSecret = false,
                             PER = 0,
                             STR = 0
@@ -458,6 +488,7 @@ namespace Steward.Migrations
                             END = 0,
                             HealthPoolBonus = 0,
                             INT = -2,
+                            IsEducation = false,
                             IsSecret = false,
                             PER = 0,
                             STR = 0
@@ -546,6 +577,13 @@ namespace Steward.Migrations
                             StupidId = 1,
                             CurrentYear = 372
                         });
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.CharacterDeathTimer", b =>
+                {
+                    b.HasOne("Steward.Context.Models.PlayerCharacter", "PlayerCharacter")
+                        .WithOne()
+                        .HasForeignKey("Steward.Context.Models.CharacterDeathTimer", "PlayerCharacterId");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.CharacterTrait", b =>

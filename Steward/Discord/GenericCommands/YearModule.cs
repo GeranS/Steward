@@ -13,8 +13,8 @@ namespace Steward.Discord.GenericCommands
 {
 	public class YearModule : ModuleBase<SocketCommandContext>
 	{
-		private StewardContext _stewardContext { get; set; }
-		private DeathService _deathService { get; set; }
+		private readonly StewardContext _stewardContext;
+		private readonly DeathService _deathService;
 
 		public YearModule(StewardContext stewardContext, DeathService deathService)
 		{
@@ -42,8 +42,20 @@ namespace Steward.Discord.GenericCommands
 
 			var currentYear = _stewardContext.Year.First();
 
-			currentYear.CurrentYear = currentYear.CurrentYear + amount;
+			var charactersOver60AndAlive = _stewardContext.PlayerCharacters.Where(c =>
+				c.YearOfDeath == null && c.YearOfBirth < currentYear.CurrentYear - 60);
 
+			Console.WriteLine("Amount of characters checked: " + charactersOver60AndAlive.Count());
+
+			foreach (var character in charactersOver60AndAlive)
+			{
+				//-1, because else it'll check a year twice
+				await _deathService.PerformOldAgeCalculation(character, currentYear.CurrentYear, currentYear.CurrentYear + amount - 1);
+			}
+
+			currentYear.CurrentYear += amount;
+
+			_stewardContext.PlayerCharacters.UpdateRange(charactersOver60AndAlive);
 			_stewardContext.Year.Update(currentYear);
 			await _stewardContext.SaveChangesAsync();
 

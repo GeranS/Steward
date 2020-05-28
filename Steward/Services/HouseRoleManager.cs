@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
 using Steward.Context;
 using Steward.Context.Models;
 
@@ -13,12 +14,13 @@ namespace Steward.Services
 	public class HouseRoleManager
 	{
 		private readonly DiscordSocketClient _client;
-
+		private readonly IOptions<StewardConfig> _config;
 		private readonly StewardContext _stewardContext;
 
-		public HouseRoleManager(StewardContext stewardContext, DiscordSocketClient client)
+		public HouseRoleManager(StewardContext stewardContext, IOptions<StewardConfig> config, DiscordSocketClient client)
 		{
 			_client = client;
+			_config = config;
 			_stewardContext = stewardContext;
 		}
 
@@ -33,7 +35,7 @@ namespace Steward.Services
 			}
 
 			var guild = _client
-				.GetGuild(ulong.Parse(Properties.Resources.guildId));
+				.GetGuild(ulong.Parse(_config.Value.GuildId));
 			
 			SocketRole houseRole;
 			try

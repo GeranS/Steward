@@ -29,7 +29,7 @@ namespace Steward.Services
             switch (attackType)
             {
                 case "heavy":
-                    attackTypeHitBonus = 1;
+                    attackTypeHitBonus = 2;
                     attackTypeDamageBonus = 1;
                     break;
                 case "light":

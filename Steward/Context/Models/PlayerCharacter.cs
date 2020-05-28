@@ -48,12 +48,7 @@ namespace Steward.Context.Models
 
 		public bool IsAlive()
 		{
-			if (YearOfDeath == null)
-			{
-				return true;
-			}
-
-			return false;
+			return YearOfDeath == null;
 		}
 	}
 
