@@ -26,6 +26,8 @@ namespace Steward.Context.Models
 
 		public string DefaultRangedWeaponId { get; set; }
 		public ValkFinderWeapon DefaultRangedWeapon { get; set; }
+		public string EquippedArmourID { get; set; }
+		public ValkFinderArmour EquippedArmour { get; set; }
 
 		public int InitialAge { get; set; } = new Random().Next(18, 25);
 		public int YearOfBirth { get; set; }

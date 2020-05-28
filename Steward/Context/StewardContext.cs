@@ -32,6 +32,10 @@ namespace Steward.Context
 		public DbSet<UserMessageRecord> MessageRecords { get; set; }
 		public DbSet<ValkFinderWeapon> ValkFinderWeapons { get; set; }
 		public DbSet<Year> Year { get; set; }
+		public DbSet<ValkFinderArmour> ValkFinderArmours { get; set; }
+		public DbSet<ValkFinderItem> ValkFinderItems { get; set; }
+		public DbSet<CharacterInventory> CharacterInventories { get; set; }
+
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -214,26 +218,26 @@ namespace Steward.Context
 					{
 						WeaponName = "Sword",
 						IsRanged = false,
-						DieSize = 8
+						DamageDieSize = 8
 					},
 					new ValkFinderWeapon()
 					{
 						WeaponName = "Dagger",
 						IsRanged = false,
-						DieSize = 6
+						DamageDieSize = 6
 					},
 					new ValkFinderWeapon()
 					{
 						WeaponName = "Shortbow",
 						IsRanged = true,
-						DieSize = 8
+						DamageDieSize = 8
 					}
 				});
 
 			modelBuilder.Entity<Year>()
 				.HasData(new Year()
 				{
-					StupidId = 1,
+					StupidId = 1, //stupid
 					CurrentYear = 372
 				});
 		}
