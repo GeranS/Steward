@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Steward.Context;
 using Steward.Context.Models;
 using Steward.Discord.CustomPreconditions;
@@ -30,7 +31,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("add trait")]
 		[Summary("Example: -1 0 0 1 0 \"Court Education - You have been educated in the writ of law, and the book of justice or whatever.\"")]
 		[RequireStewardPermission]
-		public async Task CreateTrait(int str, int end, int dex, int per, int intel, int ac, int ap, int hp, string description, bool secret)
+		public async Task CreateTrait(int str, int end, int dex, int per, int intel, int ac, int ap, int hp, string description, bool secret, bool education = false)
 		{
 			var newTrait = new Trait()
 			{
@@ -43,7 +44,8 @@ namespace Steward.Discord.GenericCommands
 				AbilityPointBonus = ap,
 				HealthPoolBonus = hp,
 				Description = description,
-				IsSecret = secret
+				IsSecret = secret,
+				IsEducation = education
 			};
 
 			await _stewardContext.Traits.AddAsync(newTrait);
@@ -52,6 +54,7 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("trait")]
+		[RequireStewardPermission]
 		public async Task AddTraitToCharacter(string traitName, [Remainder]SocketGuildUser mention = null)
 		{
 			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
@@ -79,13 +82,6 @@ namespace Steward.Discord.GenericCommands
 				if (activeCharacter == null)
 				{
 					await ReplyAsync("Could not find a living character.");
-					return;
-				}
-
-				if (activeCharacter.CharacterTraits.Count > 0 && !discordUser.CanUseAdminCommands && mention == null)
-				{
-					await ReplyAsync(
-						"You may only add one trait to yourself, if you need additional traits or need a trait removed, please contact an admin or Major GM.");
 					return;
 				}
 			}
@@ -122,6 +118,62 @@ namespace Steward.Discord.GenericCommands
 				_stewardContext.PlayerCharacters.Update(activeCharacter);
 				await _stewardContext.SaveChangesAsync();
 				await ReplyAsync("Trait has been removed.");
+				return;
+			}
+
+			var newCharacterTrait = new CharacterTrait()
+			{
+				Trait = trait,
+				PlayerCharacter = activeCharacter
+			};
+
+			await _stewardContext.CharacterTraits.AddAsync(newCharacterTrait);
+			await _stewardContext.SaveChangesAsync();
+			await ReplyAsync("Trait has been added.");
+		}
+
+		[Command("education")]
+		public async Task education(string traitName)
+		{
+			var trait = _stewardContext.Traits.FirstOrDefault(t => t.Description.StartsWith(traitName.ToLowerInvariant()));
+
+			if (trait == null)
+			{
+				await ReplyAsync($"Could not find a trait with the name {traitName}.");
+				return;
+			}
+
+			if (!trait.IsEducation)
+			{
+				await ReplyAsync($"{traitName} is not a valid Education");
+				return;
+			}
+			DiscordUser discordUser = null;
+
+			PlayerCharacter activeCharacter = null;
+
+			
+			discordUser = _stewardContext.DiscordUsers
+				.Include(du => du.Characters)
+				.ThenInclude(c => c.CharacterTraits)
+				.ThenInclude(ct => ct.Trait)
+				.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+			activeCharacter = discordUser.Characters.Find(c => c.IsAlive());
+
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
+
+				
+			
+
+			var traitAlreadyExistsList = activeCharacter.CharacterTraits.Where(ct => ct.Trait.IsEducation);
+			if (traitAlreadyExistsList.Count()>0)
+			{
+				await ReplyAsync("You already have an education trait!");
 				return;
 			}
 
@@ -196,7 +248,7 @@ namespace Steward.Discord.GenericCommands
 		[Command("traits")]
 		public async Task ShowTraits()
 		{
-			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false);
+			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && t.IsEducation == false);
 
 			var embedBuilder = new EmbedBuilder()
 				.WithColor(Color.Purple)
@@ -239,6 +291,62 @@ namespace Steward.Discord.GenericCommands
 					bonusString += $"HP({trait.HealthPoolBonus}) ";
 				}
 				if(bonusString == "")
+				{
+					bonusString = "No Buffs";
+				}
+
+				embedBuilder.AddField(trait.Description, bonusString, false);
+			}
+
+			await ReplyAsync("", false, embedBuilder.Build(), null);
+		}
+
+		[Command("eduactions")]
+		public async Task ShowEducations()
+		{
+			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && t.IsEducation == true);
+
+			var embedBuilder = new EmbedBuilder()
+				.WithColor(Color.Purple)
+				.WithTitle("Educations");
+
+			foreach (var trait in traits)
+			{
+				var bonusString = "";
+
+				if (trait.STR != 0)
+				{
+					bonusString += $"STR({trait.STR}) ";
+				}
+				if (trait.DEX != 0)
+				{
+					bonusString += $"DEX({trait.DEX}) ";
+				}
+				if (trait.END != 0)
+				{
+					bonusString += $"END({trait.END}) ";
+				}
+				if (trait.PER != 0)
+				{
+					bonusString += $"PER({trait.PER}) ";
+				}
+				if (trait.INT != 0)
+				{
+					bonusString += $"INT({trait.INT}) ";
+				}
+				if (trait.ArmorClassBonus != 0)
+				{
+					bonusString += $"AC({trait.ArmorClassBonus}) ";
+				}
+				if (trait.AbilityPointBonus != 0)
+				{
+					bonusString += $"AP({trait.AbilityPointBonus}) ";
+				}
+				if (trait.HealthPoolBonus != 0)
+				{
+					bonusString += $"HP({trait.HealthPoolBonus}) ";
+				}
+				if (bonusString == "")
 				{
 					bonusString = "No Buffs";
 				}

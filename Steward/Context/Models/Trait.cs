@@ -24,6 +24,7 @@ namespace Steward.Context.Models
 		public string Description { get; set; }
 
 		public bool IsSecret { get; set; }
+		public bool IsEducation { get; set; }
 
 		public List<CharacterTrait> PlayerTraits { get; set; }
 	}
