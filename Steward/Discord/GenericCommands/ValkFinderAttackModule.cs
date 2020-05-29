@@ -17,14 +17,16 @@ namespace Steward.Discord.GenericCommands
 	{
 		private readonly RollService _rollService;
 		private readonly StewardContext _stewardContext;
+		private readonly InventoryService _inventoryService;
 
-		public ValkFinderAttackModule(StewardContext c, RollService r)
+		public ValkFinderAttackModule(StewardContext c, RollService r, InventoryService i)
 		{
 			_rollService = r;
 			_stewardContext = c;
+			_inventoryService = i;
 		}
 
-		[Command("equip")]
+		[Command("equip weapon")]
 		[RequireActiveCharacter]
 		public async Task SetDefaultWeapon(string weaponName)
 		{
@@ -40,6 +42,12 @@ namespace Steward.Discord.GenericCommands
 			if (valkFinderWeapon == null)
 			{
 				await ReplyAsync($"Could not find weapon.");
+				return;
+			}
+
+			if (!_inventoryService.checkInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			{
+				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
 			}
 
@@ -80,6 +88,12 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
+			if (!_inventoryService.checkInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			{
+				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
+				return;
+			}
+
 			if (valkFinderWeapon.IsRanged)
 			{
 				await ReplyAsync($"{valkFinderWeapon.WeaponName} is not a melee weapon.");
@@ -116,6 +130,12 @@ namespace Steward.Discord.GenericCommands
 			if (valkFinderWeapon == null)
 			{
 				await ReplyAsync($"Could not find weapon.");
+				return;
+			}
+
+			if (!_inventoryService.checkInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			{
+				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
 			}
 

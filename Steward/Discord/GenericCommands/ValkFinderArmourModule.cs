@@ -17,12 +17,14 @@ namespace Steward.Discord.GenericCommands
     public class ValkFinderArmourModule : ModuleBase<SocketCommandContext>
     {
         private readonly StewardContext _stewardContext;
-        public ValkFinderArmourModule(StewardContext c)
+        private readonly InventoryService _inventoryService;
+        public ValkFinderArmourModule(StewardContext c, InventoryService i)
         {
             _stewardContext = c;
+            _inventoryService = i;
         }
 
-        [Command("armour equip")]
+        [Command("equip armour")]
         public async Task EquipArmour(string armourName)
         {
             var activeCharacter =
@@ -37,6 +39,12 @@ namespace Steward.Discord.GenericCommands
             if (valkFinderArmour == null)
             {
                 await ReplyAsync($"Could not find Armour.");
+                return;
+            }
+
+            if (!_inventoryService.checkInv(activeCharacter, valkFinderArmour.ArmourName, 1))
+            {
+                await ReplyAsync($"You do not have a {valkFinderArmour.ArmourName} in your inventory");
                 return;
             }
 

@@ -64,6 +64,27 @@ namespace Steward.Services
             victimInv.Amount -= amount;
             if (victimInv.Amount <= 0) //if its zero delete the inventory
             {
+                //if weapon or armour unequip
+                if (victimInv.ValkFinderWeapon != null) //if weapon
+                {
+                    if (victimChar.DefaultMeleeWeapon.ValkFinderWeaponId == victimInv.ValkFinderWeapon.ValkFinderWeaponId) //standard melee unequip
+                    {
+                        victimChar.DefaultMeleeWeapon = null;
+                    }
+                    else if (victimChar.DefaultRangedWeapon.ValkFinderWeaponId == victimInv.ValkFinderWeapon.ValkFinderWeaponId) //standard range unequip
+                    {
+                        victimChar.DefaultRangedWeapon = null;
+                    }
+                    
+                }
+                else if (victimInv.ValkFinderArmour != null)
+                {
+                    if (victimChar.EquippedArmour.ValkFinderArmourId == victimInv.ValkFinderArmour.ValkFinderArmourId)
+                    {
+                        victimChar.EquippedArmour = null;
+                    }
+                }
+                //remove invenotry DB entry
                 _stewardContext.CharacterInventories.Remove(victimInv);
             }
             else //if its over zero update the inventory
