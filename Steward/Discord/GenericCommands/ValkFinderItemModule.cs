@@ -52,6 +52,27 @@ namespace Steward.Discord.GenericCommands
             await ReplyAsync("Item added.");
         }
 
+        [Command("items")]
+        [RequireStewardPermission]
+        public async Task ListItems()
+        {
+            var embedBuilder = new EmbedBuilder();
+
+            var valkFinderItems = _stewardContext.ValkFinderItems.ToList();
+
+            var sortedValkFinderItems = valkFinderItems.OrderBy(v => v.ItemName);
+
+            var stringBuilder = new StringBuilder();
+
+            foreach (var item in sortedValkFinderItems)
+            {
+                stringBuilder.AppendLine($"{item.ItemName}, {item.ItemDescription}");
+            }
+
+            embedBuilder.AddField("Items", stringBuilder.ToString());
+
+            await ReplyAsync(embed: embedBuilder.Build());
+        }
 
     }
 }
