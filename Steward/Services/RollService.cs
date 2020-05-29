@@ -284,6 +284,10 @@ namespace Steward.Services
 					{
 						totalBonus += character.House.DEX;
 					}
+					if (character.EquippedArmour!= null)
+					{
+						totalBonus += character.EquippedArmour.DexCost;
+					}
 
 					baseStat = character.DEX;
 					break;
