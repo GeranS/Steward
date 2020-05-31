@@ -42,6 +42,8 @@ namespace Steward.Context.Models
 		public string HouseId { get; set; }
 		public House House { get; set; }
 
+		public string SpouseId { get; set; }
+
 		public int GetAge(int currentYear)
 		{
 			var age = currentYear - YearOfBirth;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Discord;
 using Steward.Context;
@@ -10,10 +11,12 @@ namespace Steward.Services
 	public class CharacterService
 	{
 		private readonly RollService _rollService;
+		private readonly StewardContext _stewardContext;
 
-		public CharacterService(RollService rollService)
+		public CharacterService(RollService rollService, StewardContext c)
 		{
 			_rollService = rollService;
+			_stewardContext = c;
 		}
 
 		public EmbedFieldBuilder ComposeStatEmbedField(PlayerCharacter character, Year year)
@@ -34,21 +37,26 @@ namespace Steward.Services
 			var abilityPointString = $"AP: {CalculateMaximumAbilityPoint(character)}";
 
 			var healthPoolString = $"HP: {CalculateMaximumHealthPool(character)}";
+			var spouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == character.SpouseId);
+			var namestring = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)})";
 
-			if (character.House == null)
+			if (character.House != null)
 			{
-				return new EmbedFieldBuilder()
+				namestring += $" of House {character.House.HouseName}";
+			}
+			if (character.SpouseId != null)
+			{
+				namestring += $" Spouse of {spouse.CharacterName}";
+				if (!spouse.IsAlive())
 				{
-					IsInline = false,
-					Name = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)})",
-					Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{abilityPointString}\n{healthPoolString}"
-				};
+					namestring += "(deceased :skull:)";
+				}
 			}
 
 			var embedFieldBuilder = new EmbedFieldBuilder()
 			{
 				IsInline = false,
-				Name = $"{character.CharacterName} ({character.GetAge(year.CurrentYear)}) of House {character.House.HouseName}",
+				Name = namestring,
 				Value = $"{strString}\n{endString}\n{dexString}\n{perString}\n{intString}\n{armorClassString}\n{abilityPointString}\n{healthPoolString}"
 			};
 
