@@ -8,7 +8,7 @@ namespace Steward.Context.Models
     public class ValkFinderArmour
     {
         [Key]
-        public string ValkFinderArmourId { get; set; }
+        public string ValkFinderArmourId { get; set; } = Guid.NewGuid().ToString();
         public string ArmourName { get; set; }
         public int ArmourClassBonus { get; set; }
         public int DexCost { get; set; }

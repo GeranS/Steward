@@ -22,14 +22,15 @@ namespace Steward.Context.Models
 		public int INT { get; set; } = 8;
 
 		public string DefaultMeleeWeaponId { get; set; }
-		public ValkFinderWeapon DefaultMeleeWeapon { get; set; }
+		public CharacterInventory DefaultMeleeWeapon { get; set; }
 
 		public string DefaultRangedWeaponId { get; set; }
-		public ValkFinderWeapon DefaultRangedWeapon { get; set; }
-		public string EquippedArmourID { get; set; }
-		public ValkFinderArmour EquippedArmour { get; set; }
+		public CharacterInventory DefaultRangedWeapon { get; set; }
 
-		public int InitialAge { get; set; } = new Random().Next(18, 25);
+		public string EquippedArmourID { get; set; }
+		public CharacterInventory EquippedArmour { get; set; }
+
+		public int InitialAge { get; set; } = new Random().Next(18, 26);
 		public int YearOfBirth { get; set; }
 		// so it can be assigned "???"
 		public string YearOfDeath { get; set; }

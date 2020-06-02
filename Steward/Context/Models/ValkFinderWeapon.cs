@@ -8,7 +8,7 @@ namespace Steward.Context.Models
 	public class ValkFinderWeapon
 	{
 		[Key]
-		public string ValkFinderWeaponId { get; set; }
+		public string ValkFinderWeaponId { get; set; } = Guid.NewGuid().ToString();
 		[Required]
 		public string WeaponName { get; set; }
 		public string WeaponDescription { get; set; }
@@ -22,9 +22,6 @@ namespace Steward.Context.Models
 		public bool IsUnique { get; set; }
 
 		public WeaponTrait WeaponTrait { get; set; }
-
-
-
 	}
 
 	public enum WeaponTrait

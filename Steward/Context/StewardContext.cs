@@ -72,6 +72,26 @@ namespace Steward.Context
 				.WithMany(h => h.HouseMembers)
 				.HasForeignKey(pc => pc.HouseId);
 
+			modelBuilder.Entity<PlayerCharacter>()
+				.HasOne(pc => pc.DefaultMeleeWeapon)
+				.WithOne(w => w.PlayerCharacter)
+				.HasForeignKey<PlayerCharacter>(pc => pc.DefaultMeleeWeaponId);
+
+			modelBuilder.Entity<PlayerCharacter>()
+				.HasOne(pc => pc.DefaultRangedWeapon)
+				.WithOne(w => w.PlayerCharacter)
+				.HasForeignKey<PlayerCharacter>(pc => pc.DefaultRangedWeaponId);
+
+			modelBuilder.Entity<PlayerCharacter>()
+				.HasOne(pc => pc.EquippedArmour)
+				.WithOne(a => a.PlayerCharacter)
+				.HasForeignKey<PlayerCharacter>(pc => pc.EquippedArmourID);
+
+			modelBuilder.Entity<CharacterInventory>()
+				.HasOne(ci => ci.ValkFinderWeapon)
+				.WithMany()
+				.HasForeignKey(ci => ci.ValkFinderWeaponId);
+
 			modelBuilder.Entity<StaffAction>()
 				.HasOne(sa => sa.Submitter)
 				.WithMany(du => du.CreatedStaffActions)

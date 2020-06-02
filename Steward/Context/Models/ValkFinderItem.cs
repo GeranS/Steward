@@ -8,7 +8,7 @@ namespace Steward.Context.Models
     public class ValkFinderItem
     {
         [Key]
-        public string ValkFinderItemId { get; set; }
+        public string ValkFinderItemId { get; set; } = Guid.NewGuid().ToString();
         public string ItemName { get; set; }
         public string ItemDescription { get; set; }
     }
