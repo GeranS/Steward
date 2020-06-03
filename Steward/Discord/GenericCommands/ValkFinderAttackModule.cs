@@ -45,7 +45,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (!_inventoryService.checkInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
 			{
 				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
@@ -88,7 +88,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (!_inventoryService.checkInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
 			{
 				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
@@ -133,7 +133,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (!_inventoryService.checkInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
 			{
 				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;

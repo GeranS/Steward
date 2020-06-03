@@ -16,145 +16,313 @@ using Steward.Services;
 
 namespace Steward.Services
 {
-    public class InventoryService
-    {
-        StewardContext _stewardContext;
+	public class InventoryService
+	{
+		private readonly StewardContext _stewardContext;
 
-        public InventoryService(StewardContext s)
-        {
-            _stewardContext = s;
-        }
+		public InventoryService(StewardContext s)
+		{
+			_stewardContext = s;
+		}
 
-        public async Task GiveItem(PlayerCharacter reciever, Object item, int amount, string type)
-        {
-            var recieverInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == reciever.CharacterId && (i.ValkFinderArmour == item || i.ValkFinderWeapon == item || i.ValkFinderItem == item));
-            if (recieverInv == null)//he doesn't already have this type of item
-            {
-                recieverInv = new CharacterInventory()
-                {
-                    PlayerCharacterId = reciever.CharacterId,
-                    Amount = amount
-                };
-                switch (type)
-                {
-                    case "weapon":
-                        recieverInv.ValkFinderWeapon = item as ValkFinderWeapon;
-                        break;
-                    case "armour":
-                        recieverInv.ValkFinderArmour = item as ValkFinderArmour;
-                        break;
-                    case "item":
-                        recieverInv.ValkFinderItem = item as ValkFinderItem;
-                        break;
-                }
-                _stewardContext.CharacterInventories.Add(recieverInv);
+		public async Task<string> GiveItem(PlayerCharacter receiverOld, string name, string type, int amount)
+		{
+			var receiver = _stewardContext.PlayerCharacters
+				.Include(pc => pc.DefaultMeleeWeapon)
+				.Include(pc => pc.DefaultRangedWeapon)
+				.Include(pc => pc.CharacterInventories)
+				.ThenInclude(i => i.ValkFinderWeapon)
+				.Include(pc => pc.CharacterInventories)
+				.ThenInclude(i => i.ValkFinderArmour)
+				.Include(pc => pc.CharacterInventories)
+				.ThenInclude(i => i.ValkFinderItem)
+				.FirstOrDefault(pc => pc.CharacterId == receiverOld.CharacterId);
+			switch (type)
+			{
+				case "weapon":
+					var weapon = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == name);
+					if (weapon == null)
+					{
+						return "Could not find weapon.";
+					}
 
-            }
-            else //he already has this type of item
-            {
-                recieverInv.Amount += amount; //give him more
-                _stewardContext.CharacterInventories.Update(recieverInv);
-            }
-            await _stewardContext.SaveChangesAsync();
-        }
+					if (!receiver.CharacterInventories.Any(i =>
+						i.ValkFinderWeaponId != null && i.ValkFinderWeaponId == weapon.ValkFinderWeaponId))
+					{
+						var newInventory = new CharacterInventory()
+						{
+							PlayerCharacterId = receiver.CharacterId,
+							Amount = amount,
+							ValkFinderWeapon = weapon
+						};
 
-        public async Task TakeItem(PlayerCharacter victimChar, object item, int amount, string type)
-        {
-            var victimInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == victimChar.CharacterId && (i.ValkFinderArmour == item || i.ValkFinderWeapon == item || i.ValkFinderItem == item));
-            victimInv.Amount -= amount;
-            if (victimInv.Amount <= 0) //if its zero delete the inventory
-            {
-                //if weapon or armour unequip
-                if (victimInv.ValkFinderWeapon != null) //if weapon
-                {
-                    if (victimChar.DefaultMeleeWeapon.ValkFinderWeaponId == victimInv.ValkFinderWeapon.ValkFinderWeaponId) //standard melee unequip
-                    {
-                        victimChar.DefaultMeleeWeapon = null;
-                    }
-                    else if (victimChar.DefaultRangedWeapon.ValkFinderWeaponId == victimInv.ValkFinderWeapon.ValkFinderWeaponId) //standard range unequip
-                    {
-                        victimChar.DefaultRangedWeapon = null;
-                    }
-                    
-                }
-                else if (victimInv.ValkFinderArmour != null)
-                {
-                    if (victimChar.EquippedArmour.ValkFinderArmourId == victimInv.ValkFinderArmour.ValkFinderArmourId)
-                    {
-                        victimChar.EquippedArmour = null;
-                    }
-                }
-                //remove invenotry DB entry
-                _stewardContext.CharacterInventories.Remove(victimInv);
-            }
-            else //if its over zero update the inventory
-            {
-                _stewardContext.CharacterInventories.Update(victimInv);
-            }
-            await _stewardContext.SaveChangesAsync();
-        }
+						_stewardContext.CharacterInventories.Add(newInventory);
+					}
+					else
+					{
+						var inv = _stewardContext.CharacterInventories.FirstOrDefault(i =>
+							i.PlayerCharacterId == receiver.CharacterId &&
+							i.ValkFinderWeaponId == weapon.ValkFinderWeaponId);
 
-        public EmbedBuilder createInventoryEmbed(PlayerCharacter character)
-        {
-            var characterInventory = _stewardContext.CharacterInventories.ToList().Where(i => i.PlayerCharacterId == character.CharacterId);
-            var embedBuilder = new EmbedBuilder()
-            {
-                Color = Color.Purple,
-                Title = "Inventory"
-            };
+						inv.Amount += amount;
+					}
 
-            var weaponBuilder = new StringBuilder();
-            var armourBuilder = new StringBuilder();
-            var itemBuilder = new StringBuilder();
+					await _stewardContext.SaveChangesAsync();
+					return null;
+				case "armour":
+					var armour = _stewardContext.ValkFinderArmours.FirstOrDefault(w => w.ArmourName == name);
+					if (armour == null)
+					{
+						return "Could not find armour.";
+					}
+					if (!receiver.CharacterInventories.Any(i => i.ValkFinderArmour != null && i.ValkFinderArmourId == armour.ValkFinderArmourId))
+					{
+						var newInventory = new CharacterInventory()
+						{
+							PlayerCharacterId = receiver.CharacterId,
+							Amount = amount,
+							ValkFinderArmour = armour
+						};
 
-            foreach (var inv in characterInventory)
-            {
-                if (inv.ValkFinderArmour == null && inv.ValkFinderItem == null)
-                {
-                    weaponBuilder.AppendLine($"{inv.ValkFinderWeapon.WeaponName}: {inv.Amount}");
-                }
-                else if(inv.ValkFinderWeapon == null && inv.ValkFinderItem == null)
-                {
-                    armourBuilder.AppendLine($"{inv.ValkFinderArmour.ArmourName}: {inv.Amount}");
-                }
-                else if(inv.ValkFinderWeapon == null && inv.ValkFinderArmour == null)
-                {
-                    itemBuilder.AppendLine($"{inv.ValkFinderItem.ItemName}: {inv.Amount}");
-                }
+						_stewardContext.CharacterInventories.Add(newInventory);
+					}
+					else
+					{
+						var inv = _stewardContext.CharacterInventories.FirstOrDefault(i =>
+							i.PlayerCharacterId == receiver.CharacterId &&
+							i.ValkFinderArmourId == armour.ValkFinderArmourId);
 
-            }
-            if (weaponBuilder != null)
-            {
-                embedBuilder.AddField("Weapons:", weaponBuilder.ToString());
-            }
-            if (armourBuilder != null)
-            {
-                embedBuilder.AddField("Armour:", armourBuilder.ToString());
-            }
-            if (itemBuilder != null)
-            {
-                embedBuilder.AddField("Items:", itemBuilder.ToString());
-            }
-            if (embedBuilder.Fields == null)
-            {
-                embedBuilder.AddField("Empty", "Your Inventory is empty!");
-            }
-            return embedBuilder;
-        }
+						inv.Amount += amount;
+					}
 
-        public bool checkInv(PlayerCharacter character, string itemName, int amount)
-        {
-            //check for items in sender inv
-            var senderInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && (i.ValkFinderArmour.ArmourName == itemName || i.ValkFinderWeapon.WeaponName == itemName || i.ValkFinderItem.ItemName == itemName));
+					await _stewardContext.SaveChangesAsync();
+					return null;
+				case "item":
+					var item = _stewardContext.ValkFinderItems.FirstOrDefault(w => w.ItemName == name);
+					if (item == null)
+					{
+						return "Could not find item.";
+					}
+					if (!receiver.CharacterInventories.Any(i => i.ValkFinderItem != null && i.ValkFinderItem == item))
+					{
+						var newInventory = new CharacterInventory()
+						{
+							PlayerCharacterId = receiver.CharacterId,
+							Amount = amount,
+							ValkFinderItem = item
+						};
 
-            //does sender have enough items?
-            if (senderInv == null || (senderInv.Amount <= amount))
-            {
-                
-                return false;
-            }
-            return true;
-        }
+						_stewardContext.CharacterInventories.Add(newInventory);
+					}
+					else
+					{
+						var inv = _stewardContext.CharacterInventories.FirstOrDefault(i =>
+							i.PlayerCharacterId == receiver.CharacterId &&
+							i.ValkFinderItemId == item.ValkFinderItemId);
 
-    }
+						inv.Amount += amount;
+					}
+
+					await _stewardContext.SaveChangesAsync();
+					return null;
+			}
+
+			return "Invalid type.";
+		}
+
+		/// <summary>
+		/// Returns null on success
+		/// </summary>
+		/// <param name="receiver"></param>
+		/// <param name="name"></param>
+		/// <param name="type"></param>
+		/// <param name="amount"></param>
+		/// <returns>string</returns>
+		public async Task<string> TakeItem(PlayerCharacter receiverOld, string name, string type, int amount)
+		{
+			var receiver = _stewardContext.PlayerCharacters
+				.Include(pc => pc.DefaultMeleeWeapon)
+				.Include(pc => pc.DefaultRangedWeapon)
+				.Include(pc => pc.CharacterInventories)
+				.ThenInclude(i => i.ValkFinderWeapon)
+				.Include(pc => pc.CharacterInventories)
+				.ThenInclude(i => i.ValkFinderArmour)
+				.Include(pc => pc.CharacterInventories)
+				.ThenInclude(i => i.ValkFinderItem)
+				.FirstOrDefault(pc => pc.CharacterId == receiverOld.CharacterId);
+			switch (type)
+			{
+				case "weapon":
+					var weapon = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == name);
+					if (weapon == null)
+					{
+						return "Weapon does not exist.";
+					}
+
+					var inventoryWeapon =
+						receiver.CharacterInventories.FirstOrDefault(i => i.ValkFinderWeaponId == weapon.ValkFinderWeaponId);
+
+					if (inventoryWeapon == null)
+					{
+						return "Could not find weapon in inventory.";
+					}
+
+					if (amount >= inventoryWeapon.Amount)
+					{
+						receiver.CharacterInventories.Remove(inventoryWeapon);
+
+						if (receiver.DefaultMeleeWeaponId == weapon.ValkFinderWeaponId)
+						{
+							receiver.DefaultMeleeWeaponId = null;
+						}
+
+						if (receiver.DefaultRangedWeaponId == weapon.ValkFinderWeaponId)
+						{
+							receiver.DefaultRangedWeaponId = null;
+						}
+					}
+					else
+					{
+						var inv = _stewardContext.CharacterInventories.FirstOrDefault(i =>
+							i.PlayerCharacterId == receiver.CharacterId &&
+							i.ValkFinderWeaponId == weapon.ValkFinderWeaponId);
+
+						inv.Amount -= amount;
+					}
+
+					await _stewardContext.SaveChangesAsync();
+					return null;
+				case "armour":
+					var armour = _stewardContext.ValkFinderArmours.FirstOrDefault(w => w.ArmourName == name);
+					if (armour == null)
+					{
+						return "Armour does not exist.";
+					}
+
+					var inventoryArmour =
+						receiver.CharacterInventories.FirstOrDefault(i => i.ValkFinderArmourId == armour.ValkFinderArmourId);
+
+					if (inventoryArmour == null)
+					{
+						return "Could not find armour in inventory.";
+					}
+
+					if (amount >= inventoryArmour.Amount)
+					{
+						receiver.CharacterInventories.Remove(inventoryArmour);
+
+						if (receiver.EquippedArmourId == armour.ValkFinderArmourId)
+						{
+							receiver.EquippedArmourId = null;
+						}
+					}
+					else
+					{
+						var inv = _stewardContext.CharacterInventories.FirstOrDefault(i =>
+							i.PlayerCharacterId == receiver.CharacterId &&
+							i.ValkFinderArmourId == armour.ValkFinderArmourId);
+
+						inv.Amount -= amount;
+					}
+
+					await _stewardContext.SaveChangesAsync();
+					return null;
+				case "item":
+					var item = _stewardContext.ValkFinderItems.FirstOrDefault(w => w.ItemName == name);
+					if (item == null)
+					{
+						return "Item does not exist.";
+					}
+
+					var inventoryItem =
+						receiver.CharacterInventories.FirstOrDefault(i => i.ValkFinderItemId == item.ValkFinderItemId);
+
+					if (inventoryItem == null)
+					{
+						return "Could not find item in inventory.";
+					}
+
+					if (amount >= inventoryItem.Amount)
+					{
+						receiver.CharacterInventories.Remove(inventoryItem);
+					}
+					else
+					{
+						var inv = _stewardContext.CharacterInventories.FirstOrDefault(i =>
+							i.PlayerCharacterId == receiver.CharacterId &&
+							i.ValkFinderItemId == item.ValkFinderItemId);
+
+						inv.Amount -= amount;
+					}
+
+					await _stewardContext.SaveChangesAsync();
+					return null;
+			}
+
+			return "Invalid type.";
+		}
+
+		public EmbedBuilder CreateInventoryEmbed(PlayerCharacter character)
+		{
+			var characterInventory = character.CharacterInventories;
+			var embedBuilder = new EmbedBuilder()
+			{
+				Color = Color.Purple,
+				Title = "Inventory"
+			};
+
+			var weaponBuilder = new StringBuilder();
+			var armourBuilder = new StringBuilder();
+			var itemBuilder = new StringBuilder();
+
+			foreach (var inv in characterInventory)
+			{
+				if (inv.ValkFinderArmour == null && inv.ValkFinderItem == null)
+				{
+					weaponBuilder.AppendLine($"{inv.ValkFinderWeapon.WeaponName}: {inv.Amount}");
+				}
+				else if (inv.ValkFinderWeapon == null && inv.ValkFinderItem == null)
+				{
+					armourBuilder.AppendLine($"{inv.ValkFinderArmour.ArmourName}: {inv.Amount}");
+				}
+				else if (inv.ValkFinderWeapon == null && inv.ValkFinderArmour == null)
+				{
+					itemBuilder.AppendLine($"{inv.ValkFinderItem.ItemName}: {inv.Amount}");
+				}
+
+			}
+			if (weaponBuilder.Length != 0)
+			{
+				embedBuilder.AddField("Weapons:", weaponBuilder.ToString());
+			}
+			if (armourBuilder.Length != 0)
+			{
+				embedBuilder.AddField("Armour:", armourBuilder.ToString());
+			}
+			if (itemBuilder.Length != 0)
+			{
+				embedBuilder.AddField("Items:", itemBuilder.ToString());
+			}
+			if (embedBuilder.Fields.Count == 0)
+			{
+				embedBuilder.AddField("Empty", "Your Inventory is empty!");
+			}
+			return embedBuilder;
+		}
+
+		public bool CheckInv(PlayerCharacter character, string itemName, int amount)
+		{
+			//check for items in sender inv
+			var senderInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && (i.ValkFinderArmour.ArmourName == itemName || i.ValkFinderWeapon.WeaponName == itemName || i.ValkFinderItem.ItemName == itemName));
+
+			//does sender have enough items?
+			if (senderInv == null || (senderInv.Amount <= amount))
+			{
+
+				return false;
+			}
+			return true;
+		}
+
+	}
 }

@@ -47,9 +47,9 @@ namespace Steward.Services
 			if (character.SpouseId != null)
 			{
 				namestring += $" Spouse of {spouse.CharacterName}";
-				if (!spouse.IsAlive())
+				if (spouse.YearOfDeath != null)
 				{
-					namestring += "(deceased :skull:)";
+					namestring += " (deceased :skull:)";
 				}
 			}
 

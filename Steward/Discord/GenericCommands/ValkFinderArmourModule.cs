@@ -42,7 +42,7 @@ namespace Steward.Discord.GenericCommands
                 return;
             }
 
-            if (!_inventoryService.checkInv(activeCharacter, valkFinderArmour.ArmourName, 1))
+            if (!_inventoryService.CheckInv(activeCharacter, valkFinderArmour.ArmourName, 1))
             {
                 await ReplyAsync($"You do not have a {valkFinderArmour.ArmourName} in your inventory");
                 return;
