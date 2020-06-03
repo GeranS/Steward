@@ -8,7 +8,7 @@ namespace Steward.Context.Models
     public class CharacterInventory
     {
         [Key]
-        public string InventoryId { get; set; }
+        public string InventoryId { get; set; } = Guid.NewGuid().ToString();
 
         public string PlayerCharacterId { get; set; }
         public PlayerCharacter PlayerCharacter { get; set; }

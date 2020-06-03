@@ -42,6 +42,39 @@ namespace Steward.Migrations
                     b.ToTable("CharacterDeathTimers");
                 });
 
+            modelBuilder.Entity("Steward.Context.Models.CharacterInventory", b =>
+                {
+                    b.Property<string>("InventoryId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlayerCharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ValkFinderArmourId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ValkFinderItemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ValkFinderWeaponId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("InventoryId");
+
+                    b.HasIndex("PlayerCharacterId");
+
+                    b.HasIndex("ValkFinderArmourId");
+
+                    b.HasIndex("ValkFinderItemId");
+
+                    b.HasIndex("ValkFinderWeaponId");
+
+                    b.ToTable("CharacterInventories");
+                });
+
             modelBuilder.Entity("Steward.Context.Models.CharacterTrait", b =>
                 {
                     b.Property<string>("PlayerCharacterId")
@@ -273,6 +306,9 @@ namespace Steward.Migrations
                     b.Property<int>("END")
                         .HasColumnType("int");
 
+                    b.Property<string>("EquippedArmourId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("HouseId")
                         .HasColumnType("nvarchar(450)");
 
@@ -288,6 +324,9 @@ namespace Steward.Migrations
                     b.Property<int>("STR")
                         .HasColumnType("int");
 
+                    b.Property<string>("SpouseId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("YearOfBirth")
                         .HasColumnType("int");
 
@@ -301,6 +340,8 @@ namespace Steward.Migrations
                     b.HasIndex("DefaultRangedWeaponId");
 
                     b.HasIndex("DiscordUserId");
+
+                    b.HasIndex("EquippedArmourId");
 
                     b.HasIndex("HouseId");
 
@@ -521,39 +562,117 @@ namespace Steward.Migrations
                     b.ToTable("MessageRecords");
                 });
 
-            modelBuilder.Entity("Steward.Context.Models.ValkFinderWeapon", b =>
+            modelBuilder.Entity("Steward.Context.Models.ValkFinderArmour", b =>
                 {
-                    b.Property<string>("WeaponName")
+                    b.Property<string>("ValkFinderArmourId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("DieSize")
+                    b.Property<int>("ArmourClassBonus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArmourName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DexCost")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsUnique")
+                        .HasColumnType("bit");
+
+                    b.HasKey("ValkFinderArmourId");
+
+                    b.ToTable("ValkFinderArmours");
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.ValkFinderItem", b =>
+                {
+                    b.Property<string>("ValkFinderItemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ItemDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ItemName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ValkFinderItemId");
+
+                    b.ToTable("ValkFinderItems");
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.ValkFinderWeapon", b =>
+                {
+                    b.Property<string>("ValkFinderWeaponId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DamageBonus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DamageDieAmount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DamageDieSize")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HitBonus")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsRanged")
                         .HasColumnType("bit");
 
-                    b.HasKey("WeaponName");
+                    b.Property<bool>("IsUnique")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("WeaponDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WeaponName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WeaponTrait")
+                        .HasColumnType("int");
+
+                    b.HasKey("ValkFinderWeaponId");
 
                     b.ToTable("ValkFinderWeapons");
 
                     b.HasData(
                         new
                         {
+                            ValkFinderWeaponId = "ac289074-bdbf-4408-9b65-ba4716adc0ed",
+                            DamageBonus = 0,
+                            DamageDieAmount = 0,
+                            DamageDieSize = 8,
+                            HitBonus = 0,
+                            IsRanged = false,
+                            IsUnique = false,
                             WeaponName = "Sword",
-                            DieSize = 8,
-                            IsRanged = false
+                            WeaponTrait = 0
                         },
                         new
                         {
+                            ValkFinderWeaponId = "6ad61f8b-5ef3-4ec9-bdd2-08116a43db34",
+                            DamageBonus = 0,
+                            DamageDieAmount = 0,
+                            DamageDieSize = 6,
+                            HitBonus = 0,
+                            IsRanged = false,
+                            IsUnique = false,
                             WeaponName = "Dagger",
-                            DieSize = 6,
-                            IsRanged = false
+                            WeaponTrait = 0
                         },
                         new
                         {
+                            ValkFinderWeaponId = "a56ada89-e274-4e99-acb2-597acfa6cc1e",
+                            DamageBonus = 0,
+                            DamageDieAmount = 0,
+                            DamageDieSize = 8,
+                            HitBonus = 0,
+                            IsRanged = true,
+                            IsUnique = false,
                             WeaponName = "Shortbow",
-                            DieSize = 8,
-                            IsRanged = true
+                            WeaponTrait = 0
                         });
                 });
 
@@ -584,6 +703,25 @@ namespace Steward.Migrations
                     b.HasOne("Steward.Context.Models.PlayerCharacter", "PlayerCharacter")
                         .WithOne()
                         .HasForeignKey("Steward.Context.Models.CharacterDeathTimer", "PlayerCharacterId");
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.CharacterInventory", b =>
+                {
+                    b.HasOne("Steward.Context.Models.PlayerCharacter", "PlayerCharacter")
+                        .WithMany("CharacterInventories")
+                        .HasForeignKey("PlayerCharacterId");
+
+                    b.HasOne("Steward.Context.Models.ValkFinderArmour", "ValkFinderArmour")
+                        .WithMany()
+                        .HasForeignKey("ValkFinderArmourId");
+
+                    b.HasOne("Steward.Context.Models.ValkFinderItem", "ValkFinderItem")
+                        .WithMany()
+                        .HasForeignKey("ValkFinderItemId");
+
+                    b.HasOne("Steward.Context.Models.ValkFinderWeapon", "ValkFinderWeapon")
+                        .WithMany()
+                        .HasForeignKey("ValkFinderWeaponId");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.CharacterTrait", b =>
@@ -621,6 +759,10 @@ namespace Steward.Migrations
                     b.HasOne("Steward.Context.Models.DiscordUser", "DiscordUser")
                         .WithMany("Characters")
                         .HasForeignKey("DiscordUserId");
+
+                    b.HasOne("Steward.Context.Models.ValkFinderArmour", "EquippedArmour")
+                        .WithMany()
+                        .HasForeignKey("EquippedArmourId");
 
                     b.HasOne("Steward.Context.Models.House", "House")
                         .WithMany("HouseMembers")

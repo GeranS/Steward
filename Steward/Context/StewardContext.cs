@@ -74,23 +74,38 @@ namespace Steward.Context
 
 			modelBuilder.Entity<PlayerCharacter>()
 				.HasOne(pc => pc.DefaultMeleeWeapon)
-				.WithOne(w => w.PlayerCharacter)
-				.HasForeignKey<PlayerCharacter>(pc => pc.DefaultMeleeWeaponId);
+				.WithMany()
+				.HasForeignKey(pc => pc.DefaultMeleeWeaponId);
 
 			modelBuilder.Entity<PlayerCharacter>()
 				.HasOne(pc => pc.DefaultRangedWeapon)
-				.WithOne(w => w.PlayerCharacter)
-				.HasForeignKey<PlayerCharacter>(pc => pc.DefaultRangedWeaponId);
+				.WithMany()
+				.HasForeignKey(pc => pc.DefaultRangedWeaponId);
 
 			modelBuilder.Entity<PlayerCharacter>()
 				.HasOne(pc => pc.EquippedArmour)
-				.WithOne(a => a.PlayerCharacter)
-				.HasForeignKey<PlayerCharacter>(pc => pc.EquippedArmourID);
+				.WithMany()
+				.HasForeignKey(pc => pc.EquippedArmourId);
+
+			modelBuilder.Entity<PlayerCharacter>()
+				.HasMany(pc => pc.CharacterInventories)
+				.WithOne(ci => ci.PlayerCharacter)
+				.HasForeignKey(ci => ci.PlayerCharacterId);
 
 			modelBuilder.Entity<CharacterInventory>()
 				.HasOne(ci => ci.ValkFinderWeapon)
 				.WithMany()
 				.HasForeignKey(ci => ci.ValkFinderWeaponId);
+
+			modelBuilder.Entity<CharacterInventory>()
+				.HasOne(ci => ci.ValkFinderArmour)
+				.WithMany()
+				.HasForeignKey(ci => ci.ValkFinderArmourId);
+
+			modelBuilder.Entity<CharacterInventory>()
+				.HasOne(ci => ci.ValkFinderItem)
+				.WithMany()
+				.HasForeignKey(ci => ci.ValkFinderItemId);
 
 			modelBuilder.Entity<StaffAction>()
 				.HasOne(sa => sa.Submitter)

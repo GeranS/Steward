@@ -26,10 +26,9 @@ namespace Steward.Discord.GenericCommands
 		{
 			_stewardContext = context;
 			_client = client;
-
-
 		}
 
+        [Command("marry")]
 		public async Task MarryPlayer([Remainder]SocketGuildUser mention)
 		{
             var commandUser = _stewardContext.DiscordUsers
@@ -47,9 +46,9 @@ namespace Steward.Discord.GenericCommands
                     .Include(du => du.Characters)
                     .SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
 
-            var recievingCharacter = discordUser.Characters.Find(c => c.IsAlive());
+            var receivingCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
-            if (recievingCharacter == null)
+            if (receivingCharacter == null)
             {
                 await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
                 return;
@@ -63,16 +62,18 @@ namespace Steward.Discord.GenericCommands
                 return;
             }
 
-            var recieverSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == recievingCharacter.SpouseId);
+            var recieverSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == receivingCharacter.SpouseId);
 
             if (recieverSpouse != null && recieverSpouse.IsAlive())
             {
-                await ReplyAsync($"{_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()} is already married. Kill his spouse first to marry her/him");
+                await ReplyAsync($"{receivingCharacter.CharacterName} is already married. Kill their spouse first to marry her/him");
                 return;
             }
 
-            activeCharacter.SpouseId = recievingCharacter.CharacterId;
-            recievingCharacter.SpouseId = activeCharacter.CharacterId;
+            activeCharacter.SpouseId = receivingCharacter.CharacterId;
+            receivingCharacter.SpouseId = activeCharacter.CharacterId;
+
+            await _stewardContext.SaveChangesAsync();
 
             await ReplyAsync($"The Husband and Bride may now kiss!");
         }
