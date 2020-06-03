@@ -37,8 +37,6 @@ namespace Steward.Services
 
         private async void OldAgeDeathCheck(Object source, ElapsedEventArgs e)
         {
-            Console.WriteLine("24 hour checker check");
-
 	        var charactersToKill = _stewardContext.CharacterDeathTimers
 		        .Include(cdt => cdt.PlayerCharacter)
 		        .Where(cdt => cdt.DeathTime < DateTime.UtcNow).ToList();

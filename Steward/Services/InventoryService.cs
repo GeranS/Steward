@@ -310,18 +310,22 @@ namespace Steward.Services
 			return embedBuilder;
 		}
 
-		public bool CheckInv(PlayerCharacter character, string itemName, int amount)
+		public bool CheckInv(PlayerCharacter character, string itemName, string type, int amount)
 		{
-			//check for items in sender inv
-			var senderInv = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && (i.ValkFinderArmour.ArmourName == itemName || i.ValkFinderWeapon.WeaponName == itemName || i.ValkFinderItem.ItemName == itemName));
-
-			//does sender have enough items?
-			if (senderInv == null || (senderInv.Amount <= amount))
+			switch (type)
 			{
-
-				return false;
+				case "weapon":
+					var senderInvWeapon = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && i.ValkFinderWeapon.WeaponName == itemName);
+					return senderInvWeapon != null && (senderInvWeapon.Amount >= amount);
+				case "armour":
+					var senderInvArmour = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && i.ValkFinderArmour.ArmourName == itemName);
+					return senderInvArmour != null && (senderInvArmour.Amount >= amount);
+				case "item":
+					var senderInvItem = _stewardContext.CharacterInventories.FirstOrDefault(i => i.PlayerCharacterId == character.CharacterId && i.ValkFinderItem.ItemName == itemName);
+					return senderInvItem != null && (senderInvItem.Amount >= amount);
 			}
-			return true;
+
+			return false;
 		}
 
 	}

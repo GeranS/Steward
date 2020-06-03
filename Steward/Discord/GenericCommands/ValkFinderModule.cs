@@ -118,6 +118,8 @@ namespace Steward.Discord.GenericCommands
 					.Include(du => du.Characters)
 					.ThenInclude(c => c.CharacterTraits)
 					.ThenInclude(ct => ct.Trait)
+					.Include(du => du.Characters)
+					.ThenInclude(pc => pc.EquippedArmour)
 					.SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
 			}
 			else
@@ -128,6 +130,8 @@ namespace Steward.Discord.GenericCommands
 					.Include(du => du.Characters)
 					.ThenInclude(c => c.CharacterTraits)
 					.ThenInclude(ct => ct.Trait)
+					.Include(du => du.Characters)
+					.ThenInclude(pc => pc.EquippedArmour)
 					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 			}
 

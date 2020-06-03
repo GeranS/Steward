@@ -45,7 +45,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, "weapon", 1))
 			{
 				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
@@ -78,9 +78,7 @@ namespace Steward.Discord.GenericCommands
 					.ThenInclude(ct => ct.Trait)
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			ValkFinderWeapon valkFinderWeapon = null;
-
-			valkFinderWeapon = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName) ?? activeCharacter.DefaultMeleeWeapon;
+			var valkFinderWeapon = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName) ?? activeCharacter.DefaultMeleeWeapon;
 
 			if (valkFinderWeapon == null)
 			{
@@ -88,7 +86,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, "weapon", 1))
 			{
 				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
@@ -107,7 +105,7 @@ namespace Steward.Discord.GenericCommands
 
 		[Command("ranged")]
 		[RequireActiveCharacter]
-		public async Task AttackWithRangedWeapon(int range, string weaponName = null)
+		public async Task AttackWithRangedWeapon(int range = 0, string weaponName = null)
 		{
 			if (range < 0)
 			{
@@ -133,7 +131,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, 1))
+			if (!_inventoryService.CheckInv(activeCharacter, valkFinderWeapon.WeaponName, "weapon", 1))
 			{
 				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} in your inventory");
 				return;
@@ -202,14 +200,21 @@ namespace Steward.Discord.GenericCommands
 				}
 			}
 
-			embedBuilder.AddField("Weapons", stringBuilder.ToString());
+			if (stringBuilder.Length == 0)
+			{
+				embedBuilder.AddField("Weapons", "There are no unique weapons.");
+			}
+			else
+			{
+				embedBuilder.AddField("Weapons", stringBuilder.ToString());
+			}
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
 
 		[Command("add weapon")]
 		[RequireStewardPermission]
-		public async Task AddWeapon(string name, string rangedOrMelee, string damage, int hitbonus, string weaponTraitString = "None",bool unique = false)
+		public async Task AddWeapon(string name, string rangedOrMelee, string damage, int hitBonus, string weaponTraitString = "None", bool unique = false)
 		{
 			if (name.Length > 100)
 			{
@@ -263,7 +268,7 @@ namespace Steward.Discord.GenericCommands
 				DamageDieAmount = damageDieAmount,
 				DamageDieSize = damageDieSize,
 				DamageBonus = damageBonus,
-				HitBonus = hitbonus,
+				HitBonus = hitBonus,
 				IsRanged = rangedOrMelee == "ranged",
 				IsUnique = unique,
 				WeaponTrait = weaponTrait
