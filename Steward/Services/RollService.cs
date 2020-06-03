@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,8 +23,7 @@ namespace Steward.Services
 
 		public EmbedBuilder RollMeleeAttack(PlayerCharacter character, ValkFinderWeapon weapon, string attackType)
         {
-
-            var attackTypeHitBonus = 0;
+	        var attackTypeHitBonus = 0;
             var attackTypeDamageBonus = 0;
 
             switch (attackType)
@@ -64,15 +64,15 @@ namespace Steward.Services
                 attackRoll = 0;
             }
 
-			bool crit = attackRollRaw == 20; //are we crittin'?
+			var crit = attackRollRaw == 20; //are we crittin'?
 
-			int[] damageRollsRaw = new int[0];
-			for(int i = 1; i <= weapon.DamageDieAmount + 1;i++)
+			var damageRollsRaw = new List<int>();
+			for(var i = 0; i < weapon.DamageDieAmount; i++)
 			{
-				damageRollsRaw.Append(rnd.Next(1, weapon.DamageDieSize + 1));
+				damageRollsRaw.Add(rnd.Next(1, weapon.DamageDieSize + 1));
 			}
 
-			int[] critRolls = new int[0];
+			var critRolls = new List<int>();
 			if (crit)
 			{
 				critRolls.Append(rnd.Next(1, weapon.DamageDieSize + 1));
@@ -154,10 +154,10 @@ namespace Steward.Services
 				damageRoll = 0;
 			}*/
 
-			int[] damageRollsRaw = new int[0];
-			for (int i = 1; i <= weapon.DamageDieAmount + 1; i++)
+			var damageRollsRaw = new List<int>();
+			for (int i = 0; i < weapon.DamageDieAmount; i++)
 			{
-				damageRollsRaw.Append(rnd.Next(1, weapon.DamageDieSize + 1));
+				damageRollsRaw.Add(rnd.Next(1, weapon.DamageDieSize + 1));
 			}
 
 			var damage = damageRollsRaw.Sum() + weapon.DamageBonus;

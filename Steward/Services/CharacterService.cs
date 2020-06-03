@@ -93,7 +93,10 @@ namespace Steward.Services
 
 			armorClass += dexMod + armorClassBonus;
 
-			//armor shit
+			if (character.EquippedArmour != null)
+			{
+				armorClass += character.EquippedArmour.ArmourClassBonus;
+			}
 
 			return armorClass;
 		}

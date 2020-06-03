@@ -80,7 +80,7 @@ namespace Steward.Discord.GenericCommands
             }
 
             //does sender have enough items?
-            if (!_inventoryService.CheckInv(activeCharacter,itemName,amount))
+            if (!_inventoryService.CheckInv(activeCharacter,itemName, type, amount))
             {
                 await ReplyAsync($"You don't have enough of {itemName} in you inventory to give {amount} away");
                 return;

@@ -42,7 +42,7 @@ namespace Steward.Discord.GenericCommands
                 return;
             }
 
-            if (!_inventoryService.CheckInv(activeCharacter, valkFinderArmour.ArmourName, 1))
+            if (!_inventoryService.CheckInv(activeCharacter, valkFinderArmour.ArmourName, "armour", 1))
             {
                 await ReplyAsync($"You do not have a {valkFinderArmour.ArmourName} in your inventory");
                 return;
@@ -94,7 +94,14 @@ namespace Steward.Discord.GenericCommands
                 stringBuilder.AppendLine($"{armour.ArmourName}, AC: {armour.ArmourClassBonus}, DEX Penalty: {armour.DexCost}");
             }
 
-            embedBuilder.AddField("Weapons", stringBuilder.ToString());
+            if (stringBuilder.Length == 0)
+            {
+	            embedBuilder.AddField("Armour", "There are no unique sets of armour.");
+            }
+            else
+            {
+	            embedBuilder.AddField("Armour", stringBuilder.ToString());
+            }
 
             await ReplyAsync(embed: embedBuilder.Build());
         }
@@ -109,8 +116,6 @@ namespace Steward.Discord.GenericCommands
                 await ReplyAsync("Weapon name can't be longer than 100 characters.");
                 return;
             }
-
-
 
             var doesArmourAlreadyExist =
                 _stewardContext.ValkFinderArmours.SingleOrDefault(vfa => vfa.ArmourName == name);
