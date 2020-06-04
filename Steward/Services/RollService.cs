@@ -286,7 +286,7 @@ namespace Steward.Services
 					}
 					if (character.EquippedArmour!= null)
 					{
-						totalBonus += character.EquippedArmour.DexCost;
+						totalBonus -= character.EquippedArmour.DexCost;
 					}
 
 					baseStat = character.DEX;

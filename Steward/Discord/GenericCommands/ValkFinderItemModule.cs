@@ -53,6 +53,7 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("items")]
+        [RequireStewardPermission]
         public async Task ListItems()
         {
             var embedBuilder = new EmbedBuilder();
