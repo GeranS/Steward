@@ -95,50 +95,53 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("inventory")]
-        public async Task ShowInventory([Remainder]SocketGuildUser mention = null)
+        [RequireStewardPermission]
+        public async Task ShowInventoryAdmin([Remainder]SocketGuildUser mention)
         {
-            DiscordUser user = null;
+	        var user = _stewardContext.DiscordUsers
+		        .Include(du => du.Characters)
+		        .ThenInclude(ch => ch.CharacterInventories)
+		        .ThenInclude(ci => ci.ValkFinderWeapon)
+		        .Include(du => du.Characters)
+		        .ThenInclude(ch => ch.CharacterInventories)
+		        .ThenInclude(ci => ci.ValkFinderArmour)
+		        .Include(du => du.Characters)
+		        .ThenInclude(ch => ch.CharacterInventories)
+		        .ThenInclude(ci => ci.ValkFinderItem)
+		        .SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
 
-            if (mention != null)
-            {
-                user = _stewardContext.DiscordUsers
-	                .Include(du => du.Characters)
-	                .ThenInclude(ch => ch.CharacterInventories)
-	                .ThenInclude(ci => ci.ValkFinderWeapon)
-	                .Include(du => du.Characters)
-	                .ThenInclude(ch => ch.CharacterInventories)
-	                .ThenInclude(ci => ci.ValkFinderArmour)
-	                .Include(du => du.Characters)
-	                .ThenInclude(ch => ch.CharacterInventories)
-	                .ThenInclude(ci => ci.ValkFinderItem)
-                    .SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
-            }
-            else
-            {
-                user = _stewardContext.DiscordUsers
-	                .Include(du => du.Characters)
-	                .ThenInclude(ch => ch.CharacterInventories)
-	                .ThenInclude(ci => ci.ValkFinderWeapon)
-	                .Include(du => du.Characters)
-	                .ThenInclude(ch => ch.CharacterInventories)
-	                .ThenInclude(ci => ci.ValkFinderArmour)
-	                .Include(du => du.Characters)
-	                .ThenInclude(ch => ch.CharacterInventories)
-	                .ThenInclude(ci => ci.ValkFinderItem)
-                    .SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
-            }
+	        var activeCharacter = user.Characters.FirstOrDefault(c => c.IsAlive());
+
+	        if (activeCharacter == null)
+	        {
+		        await ReplyAsync("Could not find a living character.");
+		        return;
+	        }
+
+	        var embedBuilder = _inventoryService.CreateInventoryEmbed(activeCharacter);
+	        await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        [Command("inventory")]
+        [RequireActiveCharacter]
+        public async Task ShowInventory()
+        {
+            DiscordUser user = _stewardContext.DiscordUsers
+	            .Include(du => du.Characters)
+	            .ThenInclude(ch => ch.CharacterInventories)
+	            .ThenInclude(ci => ci.ValkFinderWeapon)
+	            .Include(du => du.Characters)
+	            .ThenInclude(ch => ch.CharacterInventories)
+	            .ThenInclude(ci => ci.ValkFinderArmour)
+	            .Include(du => du.Characters)
+	            .ThenInclude(ch => ch.CharacterInventories)
+	            .ThenInclude(ci => ci.ValkFinderItem)
+	            .SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
             var activeCharacter = user.Characters.FirstOrDefault(c => c.IsAlive());
 
-            if (activeCharacter == null)
-            {
-                await ReplyAsync("Could not find a living character.");
-                return;
-            }
-
             var embedBuilder = _inventoryService.CreateInventoryEmbed(activeCharacter);
             await ReplyAsync(embed: embedBuilder.Build());
-            
         }
 
         [Command("grant item")]
