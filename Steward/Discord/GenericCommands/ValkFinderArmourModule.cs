@@ -72,7 +72,7 @@ namespace Steward.Discord.GenericCommands
                 stringBuilder.AppendLine($"{armour.ArmourName}, AC: {armour.ArmourClassBonus}, DEX Penalty: {armour.DexCost}");
             }
 
-            embedBuilder.AddField("Weapons", stringBuilder.ToString());
+            embedBuilder.AddField("Armour", stringBuilder.ToString());
 
             await ReplyAsync(embed: embedBuilder.Build());
         }

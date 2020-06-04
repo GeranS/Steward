@@ -258,6 +258,12 @@ namespace Steward.Discord.GenericCommands
                 return;
             }
 
+            if (_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == melee).IsUnique || _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == ranged).IsUnique || _stewardContext.ValkFinderArmours.FirstOrDefault(w => w.ArmourName == armour).IsUnique)
+            {
+	            await ReplyAsync("Can't have unique items as starting equipment.");
+                return;
+            }
+
             var resultMelee = await _inventoryService.GiveItem(receivingCharacter, melee, "weapon", 1);
             var resultRanged = await _inventoryService.GiveItem(receivingCharacter, ranged, "weapon", 1);
             var resultArmour = await _inventoryService.GiveItem(receivingCharacter, armour, "armour", 1);
