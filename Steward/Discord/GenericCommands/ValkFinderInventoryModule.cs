@@ -51,9 +51,9 @@ namespace Steward.Discord.GenericCommands
                     .Include(du => du.Characters)
                     .SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
 
-            var recievingCharacter = discordUser.Characters.Find(c => c.IsAlive());
+            var receivingCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
-            if (recievingCharacter == null)
+            if (receivingCharacter == null)
             {
                 await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
                 return;
@@ -81,17 +81,17 @@ namespace Steward.Discord.GenericCommands
             }
 
             //does sender have enough items?
-            if (!_inventoryService.CheckInv(activeCharacter,itemName, type, amount))
+            if (!_inventoryService.CheckInv(activeCharacter, itemName, type, amount))
             {
-                await ReplyAsync($"You don't have enough of {itemName} in you inventory to give {amount} away");
+                await ReplyAsync($"You don't have enough of {itemName} in you inventory to give {amount} away.");
                 return;
             }
 
-            await _inventoryService.GiveItem(recievingCharacter, itemName, type, amount); //gives item to reciever
+            await _inventoryService.GiveItem(receivingCharacter, itemName, type, amount); //gives item to reciever
 
             await _inventoryService.TakeItem(activeCharacter, itemName, type, amount); //takes item with sender inventory
 
-            await ReplyAsync($"{amount} of the {type} {itemName} has been given to {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}");
+            await ReplyAsync($"{amount} of the {type} {itemName} has been given to {receivingCharacter.CharacterName}");
         }
 
         [Command("inventory")]
@@ -226,10 +226,10 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("starting equipment")]
+        [RequireActiveCharacter]
         public async Task StartingEquipment(string melee, string ranged, string armour)
         {
-
-            var discordUser = _stewardContext.DiscordUsers
+	        var discordUser = _stewardContext.DiscordUsers
                     .Include(du => du.Characters)
                     .ThenInclude(ch => ch.CharacterInventories)
                     .ThenInclude(ci => ci.ValkFinderWeapon)
@@ -245,22 +245,15 @@ namespace Steward.Discord.GenericCommands
 
             if (receivingCharacter.HasStartingEquipment == true)
             {
-                await ReplyAsync($"You already have your starting Equipment");
-            }
-
-            if (receivingCharacter == null)
-            {
-                await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
+                await ReplyAsync($"You already have your starting equipment.");
                 return;
             }
-            var weaponMelee = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == melee);
 
             if (_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == melee) == null || _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == ranged) == null || _stewardContext.ValkFinderArmours.FirstOrDefault(w => w.ArmourName == armour) == null)
             {
-                await ReplyAsync("one of the items is not a valid item");
+                await ReplyAsync("One of the items is not a valid item.");
                 return;
             }
-
 
             var resultMelee = await _inventoryService.GiveItem(receivingCharacter, melee, "weapon", 1);
             var resultRanged = await _inventoryService.GiveItem(receivingCharacter, ranged, "weapon", 1);
@@ -274,8 +267,7 @@ namespace Steward.Discord.GenericCommands
 
             receivingCharacter.HasStartingEquipment = true;
             await _stewardContext.SaveChangesAsync();
-            await ReplyAsync($"One of {melee} and {ranged} and {armour} has been granted to {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}");
-
+            await ReplyAsync($"One of {melee}, {ranged}, and {armour} has been granted to {receivingCharacter.CharacterName}");
         }
     }
 }

@@ -309,6 +309,9 @@ namespace Steward.Migrations
                     b.Property<string>("EquippedArmourId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("HasStartingEquipment")
+                        .HasColumnType("bit");
+
                     b.Property<string>("HouseId")
                         .HasColumnType("nvarchar(450)");
 
@@ -356,6 +359,7 @@ namespace Steward.Migrations
                             DEX = 14,
                             DiscordUserId = "75968535074967552",
                             END = 8,
+                            HasStartingEquipment = false,
                             HouseId = "123",
                             INT = 8,
                             InitialAge = 20,
@@ -640,7 +644,7 @@ namespace Steward.Migrations
                     b.HasData(
                         new
                         {
-                            ValkFinderWeaponId = "ac289074-bdbf-4408-9b65-ba4716adc0ed",
+                            ValkFinderWeaponId = "d2019564-523d-42b6-b3bf-f2ef47f305c0",
                             DamageBonus = 0,
                             DamageDieAmount = 0,
                             DamageDieSize = 8,
@@ -652,7 +656,7 @@ namespace Steward.Migrations
                         },
                         new
                         {
-                            ValkFinderWeaponId = "6ad61f8b-5ef3-4ec9-bdd2-08116a43db34",
+                            ValkFinderWeaponId = "31412e04-220e-4a15-8ffc-751b6828d4c9",
                             DamageBonus = 0,
                             DamageDieAmount = 0,
                             DamageDieSize = 6,
@@ -664,7 +668,7 @@ namespace Steward.Migrations
                         },
                         new
                         {
-                            ValkFinderWeaponId = "a56ada89-e274-4e99-acb2-597acfa6cc1e",
+                            ValkFinderWeaponId = "4983588c-c22e-4e9d-9448-1bc021d590cc",
                             DamageBonus = 0,
                             DamageDieAmount = 0,
                             DamageDieSize = 8,
