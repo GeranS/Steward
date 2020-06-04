@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -231,9 +232,10 @@ namespace Steward.Discord.GenericCommands
 			var damageDieSize = 0;
 			var damageBonus = 0;
 
-			try
-			{
-				var pattern = @"(\d+)d(\d+)([+-])(\d+)";
+			var pattern = @"(\d+)d(\d+)([+-])(\d+)";
+
+			if (Regex.IsMatch(damage, pattern))
+			{ 
 				foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(damage,pattern))
 				{
 					damageDieAmount = Int32.Parse(m.Groups[1].Value);
@@ -241,7 +243,7 @@ namespace Steward.Discord.GenericCommands
 					damageBonus = Int32.Parse(m.Groups[3].Value + m.Groups[4].Value);
 				}
 			}
-			catch
+			else
 			{
 				await ReplyAsync($"{damage}: is not a valid damage die and modifier");
 				return;
