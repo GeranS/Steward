@@ -86,6 +86,11 @@ namespace Steward.Services
 
 			var armorClass = 10;
 
+			if (character.EquippedArmour != null)
+			{
+				armorClass = character.EquippedArmour.ArmourClassBonus;
+			}
+
 			armorClass += dexMod + armorClassBonus;
 
 			if (character.EquippedArmour != null)
