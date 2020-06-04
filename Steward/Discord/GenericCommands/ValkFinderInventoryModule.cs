@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Newtonsoft.Json.Serialization;
 using Steward.Context;
 using Steward.Context.Models;
 using Steward.Discord.CustomPreconditions;
@@ -222,6 +223,59 @@ namespace Steward.Discord.GenericCommands
 	        }
 
             await ReplyAsync($"{amount} of the {type} {itemName} has been taken from {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}");
+        }
+
+        [Command("starting equipment")]
+        public async Task StartingEquipment(string melee, string ranged, string armour)
+        {
+
+            var discordUser = _stewardContext.DiscordUsers
+                    .Include(du => du.Characters)
+                    .ThenInclude(ch => ch.CharacterInventories)
+                    .ThenInclude(ci => ci.ValkFinderWeapon)
+                    .Include(du => du.Characters)
+                    .ThenInclude(ch => ch.CharacterInventories)
+                    .ThenInclude(ci => ci.ValkFinderArmour)
+                    .Include(du => du.Characters)
+                    .ThenInclude(ch => ch.CharacterInventories)
+                    .ThenInclude(ci => ci.ValkFinderItem)
+                    .SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+            var receivingCharacter = discordUser.Characters.Find(c => c.IsAlive());
+
+            if (receivingCharacter.HasStartingEquipment == true)
+            {
+                await ReplyAsync($"You already have your starting Equipment");
+            }
+
+            if (receivingCharacter == null)
+            {
+                await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
+                return;
+            }
+            var weaponMelee = _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == melee);
+
+            if (_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == melee) == null || _stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == ranged) == null || _stewardContext.ValkFinderArmours.FirstOrDefault(w => w.ArmourName == armour) == null)
+            {
+                await ReplyAsync("one of the items is not a valid item");
+                return;
+            }
+
+
+            var resultMelee = await _inventoryService.GiveItem(receivingCharacter, melee, "weapon", 1);
+            var resultRanged = await _inventoryService.GiveItem(receivingCharacter, ranged, "weapon", 1);
+            var resultArmour = await _inventoryService.GiveItem(receivingCharacter, armour, "armour", 1);
+
+            if (resultMelee != null || resultRanged != null || resultArmour != null)
+            {
+                await ReplyAsync(resultMelee + resultArmour + resultRanged);
+                return;
+            }
+
+            receivingCharacter.HasStartingEquipment = true;
+            await _stewardContext.SaveChangesAsync();
+            await ReplyAsync($"One of {melee} and {ranged} and {armour} has been granted to {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}");
+
         }
     }
 }
