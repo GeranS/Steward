@@ -175,6 +175,34 @@ namespace Steward.Discord.GenericCommands
 				traitsListString = "None.";
 			}
 
+			var equippedStuff = new StringBuilder();
+			if(activeCharacter.DefaultMeleeWeapon == null)
+            {
+				equippedStuff.AppendLine($"Equipped Melee Weapon: nothing");
+            }
+			else
+            {
+				equippedStuff.AppendLine($"Equipped Melee Weapon: {activeCharacter.DefaultMeleeWeapon.WeaponName}");
+            }
+
+			if (activeCharacter.DefaultRangedWeapon == null)
+			{
+				equippedStuff.AppendLine($"Equipped Ranged Weapon: nothing");
+			}
+			else
+			{
+				equippedStuff.AppendLine($"Equipped Ranged Weapon: {activeCharacter.DefaultRangedWeapon.WeaponName}");
+			}
+
+			if (activeCharacter.EquippedArmour == null)
+			{
+				equippedStuff.AppendLine($"Equipped Armour: nothing");
+			}
+			else
+			{
+				equippedStuff.AppendLine($"Equipped Armour: {activeCharacter.EquippedArmour.ArmourName}");
+			}
+
 			embedBuilder.AddField(_characterService.ComposeStatEmbedField(activeCharacter, year));
 
 			_ = embedBuilder.AddField("Traits", traitsListString)
@@ -182,6 +210,8 @@ namespace Steward.Discord.GenericCommands
 
 			embedBuilder.AddField("Bio", $"{activeCharacter.Bio}")
 				.WithColor(Color.Purple);
+
+			embedBuilder.AddField("Equipment", equippedStuff.ToString());
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}

@@ -35,6 +35,9 @@ namespace Steward.Context
 		public DbSet<ValkFinderArmour> ValkFinderArmours { get; set; }
 		public DbSet<ValkFinderItem> ValkFinderItems { get; set; }
 		public DbSet<CharacterInventory> CharacterInventories { get; set; }
+		public DbSet<Proposal> Proposals { get; set; }
+		public DbSet<MarriageChannel> MarriageChannels { get; set; }
+
 
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)

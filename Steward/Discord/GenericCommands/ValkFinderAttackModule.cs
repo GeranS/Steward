@@ -67,6 +67,46 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been equipped.");
 		}
 
+		[Command("unequip weapon")]
+		[RequireActiveCharacter]
+		public async Task UnequipWeapon(string weaponName)
+        {
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.Include(c => c.DefaultMeleeWeapon)
+					.Include(c => c.DefaultRangedWeapon)
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
+
+			var valkFinderWeapon =
+				_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName);
+
+			if (valkFinderWeapon == null)
+			{
+				await ReplyAsync($"Could not find weapon.");
+				return;
+			}
+
+			if (activeCharacter.DefaultMeleeWeapon.ValkFinderWeaponId != valkFinderWeapon.ValkFinderWeaponId || activeCharacter.DefaultRangedWeapon.ValkFinderWeaponId != valkFinderWeapon.ValkFinderWeaponId)
+			{
+				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} equipped!");
+				return;
+			}
+
+			if (valkFinderWeapon.IsRanged)
+			{
+				activeCharacter.DefaultRangedWeapon = null;
+			}
+			else
+			{
+				activeCharacter.DefaultMeleeWeapon = null;
+			}
+
+			_stewardContext.PlayerCharacters.Update(activeCharacter);
+			await _stewardContext.SaveChangesAsync();
+
+			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been unequipped.");
+		}
+
 		[Command("melee")]
 		[RequireActiveCharacter]
 		public async Task AttackWithMeleeWeapon(string attackType = "normal", string weaponName = null)
