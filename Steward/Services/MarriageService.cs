@@ -193,7 +193,7 @@ namespace Steward.Services
                 Value = $"**{ProposerChar.CharacterName}**({proposer.ToString()}) married **{ProposedChar.CharacterName}**({proposed.ToString()})",
                 IsInline = false
             });
-            string fileName = "weddingphoto.png";
+            string fileName = "divorcephoto.png";
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Steward\data\", fileName);
             DivorcePhoto.Save(path);
 
