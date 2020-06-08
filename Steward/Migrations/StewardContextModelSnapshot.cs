@@ -280,6 +280,19 @@ namespace Steward.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Steward.Context.Models.MarriageChannel", b =>
+                {
+                    b.Property<string>("ChannelId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ServerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ChannelId");
+
+                    b.ToTable("MarriageChannels");
+                });
+
             modelBuilder.Entity("Steward.Context.Models.PlayerCharacter", b =>
                 {
                     b.Property<string>("CharacterId")
@@ -367,6 +380,28 @@ namespace Steward.Migrations
                             STR = 12,
                             YearOfBirth = 1980
                         });
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.Proposal", b =>
+                {
+                    b.Property<long>("ProposalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("ProposedId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProposerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ProposalId");
+
+                    b.HasIndex("ProposedId");
+
+                    b.HasIndex("ProposerId");
+
+                    b.ToTable("Proposals");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.StaffAction", b =>
@@ -644,7 +679,7 @@ namespace Steward.Migrations
                     b.HasData(
                         new
                         {
-                            ValkFinderWeaponId = "d2019564-523d-42b6-b3bf-f2ef47f305c0",
+                            ValkFinderWeaponId = "52d3bee2-a79a-425d-bff2-9a3a5972aa72",
                             DamageBonus = 0,
                             DamageDieAmount = 0,
                             DamageDieSize = 8,
@@ -656,7 +691,7 @@ namespace Steward.Migrations
                         },
                         new
                         {
-                            ValkFinderWeaponId = "31412e04-220e-4a15-8ffc-751b6828d4c9",
+                            ValkFinderWeaponId = "8045ceb5-5974-458f-95f0-2a9aded90a32",
                             DamageBonus = 0,
                             DamageDieAmount = 0,
                             DamageDieSize = 6,
@@ -668,7 +703,7 @@ namespace Steward.Migrations
                         },
                         new
                         {
-                            ValkFinderWeaponId = "4983588c-c22e-4e9d-9448-1bc021d590cc",
+                            ValkFinderWeaponId = "418b7d5c-da51-4dc4-9edd-e1d346856d11",
                             DamageBonus = 0,
                             DamageDieAmount = 0,
                             DamageDieSize = 8,
@@ -771,6 +806,17 @@ namespace Steward.Migrations
                     b.HasOne("Steward.Context.Models.House", "House")
                         .WithMany("HouseMembers")
                         .HasForeignKey("HouseId");
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.Proposal", b =>
+                {
+                    b.HasOne("Steward.Context.Models.DiscordUser", "Proposed")
+                        .WithMany()
+                        .HasForeignKey("ProposedId");
+
+                    b.HasOne("Steward.Context.Models.DiscordUser", "Proposer")
+                        .WithMany()
+                        .HasForeignKey("ProposerId");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.StaffAction", b =>

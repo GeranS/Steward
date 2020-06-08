@@ -62,8 +62,6 @@ namespace Steward.Services
                 Name = ":heart",
                 Value = "Aren't they cute together?"
             });
-  
-
 
             foreach (var marriageChannel in marriageChannels.Select(marriage => _client.GetChannel(ulong.Parse(marriage.ChannelId)) as SocketTextChannel))
             {

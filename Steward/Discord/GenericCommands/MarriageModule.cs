@@ -17,285 +17,290 @@ using Steward.Services;
 
 namespace Steward.Discord.GenericCommands
 {
-    public class MarriageModule: ModuleBase<SocketCommandContext>
-    {
+	public class MarriageModule : ModuleBase<SocketCommandContext>
+	{
 		private readonly StewardContext _stewardContext;
 		private readonly DiscordSocketClient _client;
-        private readonly MarriageService _marriageService;
+		private readonly MarriageService _marriageService;
 
 		public MarriageModule(StewardContext context, DiscordSocketClient client, MarriageService m)
 		{
 			_stewardContext = context;
 			_client = client;
-            _marriageService = m;
+			_marriageService = m;
 		}
 
-        [Command("propose")]
+		[Command("propose")]
 		public async Task MarryPlayer([Remainder]SocketGuildUser mention)
 		{
-            var commandUser = _stewardContext.DiscordUsers
-                    .Include(du => du.Characters)
-                    .SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+			var commandUser = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
-            var activeCharacter = commandUser.Characters.Find(c => c.IsAlive());
+			var activeCharacter = commandUser.Characters.Find(c => c.IsAlive());
 
-            if (activeCharacter == null)
-            {
-                await ReplyAsync("Could not find a living character.");
-                return;
-            }
-            var discordUser = _stewardContext.DiscordUsers
-                    .Include(du => du.Characters)
-                    .SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
+			if (activeCharacter == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
+			var discordUser = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.SingleOrDefault(u => u.DiscordId == mention.Id.ToString());
 
-            var receivingCharacter = discordUser.Characters.Find(c => c.IsAlive());
+			var receivingCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
-            if (receivingCharacter == null)
-            {
-                await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
-                return;
-            }
+			if (receivingCharacter == null)
+			{
+				await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
+				return;
+			}
 
-            var activeSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == activeCharacter.SpouseId);  
+			var activeSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == activeCharacter.SpouseId);
 
-            if (activeSpouse != null && activeSpouse.IsAlive())
-            {
-                await ReplyAsync("You are already married!");
-                return;
-            }
+			if (activeSpouse != null && activeSpouse.IsAlive())
+			{
+				await ReplyAsync("You are already married!");
+				return;
+			}
 
-            var recieverSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == receivingCharacter.SpouseId);
+			var recieverSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == receivingCharacter.SpouseId);
 
-            if (recieverSpouse != null && recieverSpouse.IsAlive())
-            {
-                await ReplyAsync($"{receivingCharacter.CharacterName} is already married. Kill their spouse first to marry her/him");
-                return;
-            }
+			if (recieverSpouse != null && recieverSpouse.IsAlive())
+			{
+				await ReplyAsync($"{receivingCharacter.CharacterName} is already married. Kill their spouse first to marry her/him");
+				return;
+			}
 
-            if (_stewardContext.Proposals.FirstOrDefault( c => c.ProposerId == activeCharacter.CharacterId && c.ProposedId == receivingCharacter.CharacterId)!= null)
-            {
-                await ReplyAsync($"You have already proposed to this Character!");
-                return;
-            }
+			if (_stewardContext.Proposals.FirstOrDefault(c => c.ProposerId == activeCharacter.CharacterId && c.ProposedId == receivingCharacter.CharacterId) != null)
+			{
+				await ReplyAsync($"You have already proposed to this Character!");
+				return;
+			}
 
-            if (_stewardContext.Proposals.FirstOrDefault(c => c.ProposedId == activeCharacter.CharacterId && c.ProposerId == receivingCharacter.CharacterId) != null)
-            {
-                await ReplyAsync($"This Character has already proposed to you reply to his advances first. To find the proposal check you DMs");
-                return;
-            }
+			if (_stewardContext.Proposals.FirstOrDefault(c => c.ProposedId == activeCharacter.CharacterId && c.ProposerId == receivingCharacter.CharacterId) != null)
+			{
+				await ReplyAsync($"This Character has already proposed to you reply to his advances first. To find the proposal check you DMs");
+				return;
+			}
 
-            /*activeCharacter.SpouseId = receivingCharacter.CharacterId;
+			/*activeCharacter.SpouseId = receivingCharacter.CharacterId;
             receivingCharacter.SpouseId = activeCharacter.CharacterId;
 
             await _stewardContext.SaveChangesAsync();*/
 
-            Proposal NewProposal = new Proposal()
-            {
-                Proposer = commandUser,
-                Proposed = discordUser                
-            };
+			Proposal NewProposal = new Proposal()
+			{
+				Proposer = commandUser,
+				Proposed = discordUser
+			};
 
-            _stewardContext.Proposals.Add(NewProposal);
-            await _stewardContext.SaveChangesAsync();
+			_stewardContext.Proposals.Add(NewProposal);
+			await _stewardContext.SaveChangesAsync();
 
-            //PM player to notify he has been proposed to.
-            
-            var proposed = _client.GetUser(ulong.Parse(discordUser.DiscordId));
+			//PM player to notify he has been proposed to.
 
-            var embedBuilder = new EmbedBuilder
-            {
-                Color = Color.Purple,
-                Title = $"A suitor has approached you! (ProposalID = {NewProposal.ProposalId})",
-            };
+			var proposed = _client.GetUser(ulong.Parse(discordUser.DiscordId));
 
-            embedBuilder.AddField(new EmbedFieldBuilder
-            {
-                Name = "Proposer:",
-                Value = $"{activeCharacter.CharacterName} has asked for your hand in marriage."
-            });
+			var embedBuilder = new EmbedBuilder
+			{
+				Color = Color.Purple,
+				Title = $"A suitor has approached you! (ProposalID = {NewProposal.ProposalId})",
+			};
 
-            embedBuilder.AddField(new EmbedFieldBuilder
-            {
-                Name = "Accept or Deny",
-                Value = $"Use \"&accept {NewProposal.ProposalId}\" or \"&deny {NewProposal.ProposalId}\" to respond."
-            });
+			embedBuilder.AddField(new EmbedFieldBuilder
+			{
+				Name = "Proposer:",
+				Value = $"{activeCharacter.CharacterName} has asked for your hand in marriage."
+			});
 
-            try
-            {
-                await proposed.SendMessageAsync("", false, embedBuilder.Build());
-            }
-            catch (NullReferenceException e)
-            {
-                Console.WriteLine(e.StackTrace);
-                //nothing, I just don't want it to crash the command
-            }
+			embedBuilder.AddField(new EmbedFieldBuilder
+			{
+				Name = "Accept or Deny",
+				Value = $"Use \"&accept {NewProposal.ProposalId}\" or \"&deny {NewProposal.ProposalId}\" to respond."
+			});
 
-            await ReplyAsync($"You have proposed to {receivingCharacter.CharacterName}!");
-        }
+			try
+			{
+				await proposed.SendMessageAsync("", false, embedBuilder.Build());
+			}
+			catch (NullReferenceException e)
+			{
+				Console.WriteLine(e.StackTrace);
+				//nothing, I just don't want it to crash the command
+			}
+
+			await ReplyAsync($"You have proposed to {receivingCharacter.CharacterName}!");
+		}
 
 
-        [Command("accept")]
-        public async Task AcceptProposal(int ProposalID)
-        {
-            var commandUser = _stewardContext.DiscordUsers
-                    .Include(du => du.Characters)
-                    .SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+		[Command("accept")]
+		public async Task AcceptProposal(int ProposalID)
+		{
+			var commandUser = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
-            var proposal = _stewardContext.Proposals.FirstOrDefault(p => p.ProposalId == ProposalID);
+			var proposal = _stewardContext.Proposals
+				.Include(p => p.Proposed)
+				.ThenInclude(p => p.Characters)
+				.Include(p => p.Proposer)
+				.ThenInclude(p => p.Characters)
+				.FirstOrDefault(p => p.ProposalId == ProposalID);
 
-            if (proposal == null)
-            {
-                await ReplyAsync($"No Proposal with ID {ProposalID} found.");
-                return;
-            }
+			if (proposal == null)
+			{
+				await ReplyAsync($"No Proposal with ID {ProposalID} found.");
+				return;
+			}
 
-            if (commandUser.DiscordId != proposal.ProposedId)
-            {
-                await ReplyAsync("You can only reply to proposals directed at you.");
-                return;
-            }
+			if (commandUser.DiscordId != proposal.ProposedId)
+			{
+				await ReplyAsync("You can only reply to proposals directed at you.");
+				return;
+			}
 
-            var ProposerChar = proposal.Proposer.Characters.FirstOrDefault(c => c.IsAlive());
+			var proposerChar = proposal.Proposer.Characters.FirstOrDefault(c => c.YearOfDeath == null);
 
-            var ProposedChar = proposal.Proposed.Characters.FirstOrDefault(c => c.IsAlive());
+			var proposedChar = proposal.Proposed.Characters.FirstOrDefault(c => c.YearOfDeath == null);
 
-            if(ProposerChar == null)
-            {
-                await ReplyAsync("No living Character has been found for the Proposer. He might have died already.");
-                return;
-            }
-            if(ProposedChar == null)
-            {
-                await ReplyAsync("Could not find living Character.");
-                return;
-            }
+			if (proposerChar == null)
+			{
+				await ReplyAsync("No living Character has been found for the Proposer. He might have died already.");
+				return;
+			}
+			if (proposedChar == null)
+			{
+				await ReplyAsync("Could not find living Character.");
+				return;
+			}
 
-            if (ProposerChar.SpouseId != null || _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == ProposerChar.CharacterId && !p.IsAlive()) != null)
-            {
-                await ReplyAsync("Your suitor has already married another one. You are too late.");
-                return;
-            }
-            if (ProposedChar.SpouseId != null || _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == ProposedChar.CharacterId && !p.IsAlive()) != null)
-            {
-                await ReplyAsync("You are already married! Kill your spouse first to accept this proposal");
-                return;
-            }
+			if (proposerChar.SpouseId != null && _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == proposerChar.CharacterId && p.YearOfDeath != null) == null)
+			{
+				await ReplyAsync("Your suitor has already married another one. You are too late.");
+				return;
+			}
 
-            ProposerChar.SpouseId = ProposedChar.CharacterId;
-            ProposedChar.SpouseId = ProposerChar.CharacterId;
+			if (proposedChar.SpouseId != null && _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == proposedChar.CharacterId && p.YearOfDeath != null) == null)
+			{
+				await ReplyAsync("You are already married! Kill your spouse first to accept this proposal");
+				return;
+			}
 
-            try
-            {
-                await _client.GetUser(ulong.Parse(proposal.ProposerId)).SendMessageAsync($"Congrats {ProposedChar.CharacterName} has accepted your proposal for marriage! You are now officially married!");
-            }
-            catch (NullReferenceException e)
-            {
-                Console.WriteLine(e.StackTrace);
-                //nothing, I just don't want it to crash the command
-            }
+			proposerChar.SpouseId = proposedChar.CharacterId;
+			proposedChar.SpouseId = proposerChar.CharacterId;
 
-            await _marriageService.SendMarriageMessage(proposal);
-            
-            _stewardContext.Proposals.Remove(proposal);
-            await _stewardContext.SaveChangesAsync();
-            await ReplyAsync("Congratulations to your new marriage!");
-            
-        }
+			try
+			{
+				await _client.GetUser(ulong.Parse(proposal.ProposerId)).SendMessageAsync($"Congrats {proposedChar.CharacterName} has accepted your proposal for marriage! You are now officially married!");
+			}
+			catch (NullReferenceException e)
+			{
+				Console.WriteLine(e.StackTrace);
+				//nothing, I just don't want it to crash the command
+			}
 
-        [Command("deny")]
-        public async Task DenyProposal(int ProposalID)
-        {
-            var commandUser = _stewardContext.DiscordUsers
-                    .Include(du => du.Characters)
-                    .SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+			await _marriageService.SendMarriageMessage(proposal);
 
-            var proposal = _stewardContext.Proposals.FirstOrDefault(p => p.ProposalId == ProposalID);
+			_stewardContext.Proposals.Remove(proposal);
+			await _stewardContext.SaveChangesAsync();
+			await ReplyAsync("Congratulations to your new marriage!");
 
-            if (proposal == null)
-            {
-                await ReplyAsync($"No Proposal with ID {ProposalID} found.");
-                return;
-            }
+		}
 
-            if (commandUser.DiscordId != proposal.ProposedId)
-            {
-                await ReplyAsync("You can only reply to proposals directed at you.");
-                return;
-            }
+		[Command("deny")]
+		public async Task DenyProposal(int ProposalID)
+		{
+			var commandUser = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
 
-            await ReplyAsync($"You have rejected the proposal!");
-            try
-            {
-                await _client.GetUser(ulong.Parse(proposal.ProposerId)).SendMessageAsync($"Your proposal has been rejected!");
-            }
-            catch (NullReferenceException e)
-            {
-                Console.WriteLine(e.StackTrace);
-                //nothing, I just don't want it to crash the command
-            }
+			var proposal = _stewardContext.Proposals.FirstOrDefault(p => p.ProposalId == ProposalID);
 
-            _stewardContext.Proposals.Remove(proposal);
-            await _stewardContext.SaveChangesAsync();
-        }
+			if (proposal == null)
+			{
+				await ReplyAsync($"No Proposal with ID {ProposalID} found.");
+				return;
+			}
 
-        [Command("set marriage channel")]
-        [RequireStewardPermission]
-        public async Task SetMarriageChannel()
-        {
-            var existingMarriageChannel = _stewardContext.MarriageChannels.ToList();
+			if (commandUser.DiscordId != proposal.ProposedId)
+			{
+				await ReplyAsync("You can only reply to proposals directed at you.");
+				return;
+			}
 
-            if (existingMarriageChannel.Count != 0)
-            {
-                await ReplyAsync("There's already an existing StaffAction channel.");
-                return;
-            }
+			await ReplyAsync($"You have rejected the proposal!");
+			try
+			{
+				await _client.GetUser(ulong.Parse(proposal.ProposerId)).SendMessageAsync($"Your proposal has been rejected!");
+			}
+			catch (NullReferenceException e)
+			{
+				Console.WriteLine(e.StackTrace);
+				//nothing, I just don't want it to crash the command
+			}
 
-            var MarriageChannel = new MarriageChannel()
-            {
-                ChannelId = Context.Channel.Id.ToString(),
-                ServerId = Context.Guild.Id.ToString()
-            };
+			_stewardContext.Proposals.Remove(proposal);
+			await _stewardContext.SaveChangesAsync();
+		}
 
-            await _stewardContext.MarriageChannels.AddAsync(MarriageChannel);
-            await _stewardContext.SaveChangesAsync();
+		[Command("set marriage channel")]
+		[RequireStewardPermission]
+		public async Task SetMarriageChannel()
+		{
+			var existingMarriageChannel = _stewardContext.MarriageChannels.ToList();
 
-            await ReplyAsync("Marriage Channel added!");
-        }
+			if (existingMarriageChannel.Count != 0)
+			{
+				await ReplyAsync("There's already an existing StaffAction channel.");
+				return;
+			}
 
-        [Command("divorce")]
-        [RequireStewardPermission]
-        public async Task Divorce([Remainder] SocketGuildUser mention1, [Remainder] SocketGuildUser mention2)
-        {
-            var spouse1 = _stewardContext.DiscordUsers
-                    .Include(du => du.Characters)
-                    .SingleOrDefault(u => u.DiscordId == mention1.Id.ToString());
-            var spouse2 = _stewardContext.DiscordUsers
-                    .Include(du => du.Characters)
-                    .SingleOrDefault(u => u.DiscordId == mention2.Id.ToString());
+			var MarriageChannel = new MarriageChannel()
+			{
+				ChannelId = Context.Channel.Id.ToString(),
+				ServerId = Context.Guild.Id.ToString()
+			};
 
-            var spouse1Char = spouse1.Characters.Find(c => c.IsAlive());
-            var spouse2Char = spouse2.Characters.Find(c => c.IsAlive());
+			await _stewardContext.MarriageChannels.AddAsync(MarriageChannel);
+			await _stewardContext.SaveChangesAsync();
 
-            if (spouse1Char == null || spouse2Char == null)
-            {
-                await ReplyAsync("Could not find a living character.");
-                return;
-            }
+			await ReplyAsync("Marriage Channel added!");
+		}
 
-            if (spouse1Char.SpouseId != spouse2Char.CharacterId)
-            {
-                await ReplyAsync("The players are not married!");
-                return;
-            }
+		[Command("divorce")]
+		[RequireStewardPermission]
+		public async Task Divorce(SocketGuildUser mention1, SocketGuildUser mention2)
+		{
+			var spouse1 = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.SingleOrDefault(u => u.DiscordId == mention1.Id.ToString());
+			var spouse2 = _stewardContext.DiscordUsers
+					.Include(du => du.Characters)
+					.SingleOrDefault(u => u.DiscordId == mention2.Id.ToString());
 
-            spouse1Char.SpouseId = null;
-            spouse2Char.SpouseId = null;
+			var spouse1Char = spouse1.Characters.Find(c => c.IsAlive());
+			var spouse2Char = spouse2.Characters.Find(c => c.IsAlive());
 
-            await _marriageService.SendDivorceMessage(spouse1, spouse2);
-            await _stewardContext.SaveChangesAsync();
-            await ReplyAsync("A divorce has happened how sad.");
+			if (spouse1Char == null || spouse2Char == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
 
-        }
+			if (spouse1Char.SpouseId != spouse2Char.CharacterId)
+			{
+				await ReplyAsync("The mentioned players do not have living married characters.");
+				return;
+			}
+
+			spouse1Char.SpouseId = null;
+			spouse2Char.SpouseId = null;
+
+			await _marriageService.SendDivorceMessage(spouse1, spouse2);
+			await _stewardContext.SaveChangesAsync();
+			await ReplyAsync("A divorce has happened, how sad.");
+		}
 
 	}
 }
