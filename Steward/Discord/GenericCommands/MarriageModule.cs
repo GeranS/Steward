@@ -50,6 +50,12 @@ namespace Steward.Discord.GenericCommands
 
 			var receivingCharacter = discordUser.Characters.Find(c => c.IsAlive());
 
+			if (receivingCharacter.CharacterId == activeCharacter.CharacterId)
+            {
+				await ReplyAsync("You can't propose to yourself even if you love yourself soooo much!");
+				return;
+            }
+
 			if (receivingCharacter == null)
 			{
 				await ReplyAsync($"Could not find a living character for {_client.GetUser(ulong.Parse(discordUser.DiscordId)).ToString()}.");
