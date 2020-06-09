@@ -219,7 +219,10 @@ namespace Steward.Discord.GenericCommands
 
 			var activeCharacter = commandUser.Characters.SingleOrDefault(cu => cu.IsAlive());
 
-			var proposal = _stewardContext.Proposals.FirstOrDefault(p => p.ProposalId == ProposalID);
+			var proposal = _stewardContext.Proposals
+				.Include(p => p.Proposed)
+				.Include(p => p.Proposer)
+				.FirstOrDefault(p => p.ProposalId == ProposalID);
 
 			if (proposal == null)
 			{
