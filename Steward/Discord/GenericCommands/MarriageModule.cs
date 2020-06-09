@@ -236,7 +236,7 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync($"You have rejected the proposal!");
 			try
 			{
-				await _client.GetUser(ulong.Parse(proposal.ProposerId)).SendMessageAsync($"Your proposal has been rejected!");
+				await _client.GetUser(ulong.Parse(proposal.Proposer.DiscordUserId)).SendMessageAsync($"Your proposal has been rejected!");
 			}
 			catch (NullReferenceException e)
 			{
