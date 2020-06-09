@@ -96,6 +96,7 @@ namespace Steward
 			.AddSingleton<GameActivityService>()
 			.AddSingleton<StaffActionService>()
 			.AddSingleton<InventoryService>()
+			.AddSingleton<MarriageService>()
 			.AddDbContext<StewardContext>(ServiceLifetime.Transient)
 			.BuildServiceProvider();
 

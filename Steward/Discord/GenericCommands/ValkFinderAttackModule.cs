@@ -67,6 +67,60 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been equipped.");
 		}
 
+		[Command("unequip")]
+		[RequireActiveCharacter]
+		public async Task UnequipWeapon(string slot)
+        {
+			var activeCharacter =
+				_stewardContext.PlayerCharacters
+					.Include(c => c.DefaultMeleeWeapon)
+					.Include(c => c.DefaultRangedWeapon)
+					.Include(c => c.EquippedArmour)
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
+
+			switch (slot)
+			{
+				case "ranged":
+					if (activeCharacter.DefaultRangedWeapon == null)
+					{
+						await ReplyAsync($"You do not have a ranged weapon equipped!");
+						return;
+					}
+					activeCharacter.DefaultRangedWeapon = null;
+					await _stewardContext.SaveChangesAsync();
+
+					await ReplyAsync($"Ranged weapon has been unequipped.");
+					return;
+				case "melee":
+					if (activeCharacter.DefaultMeleeWeapon == null)
+					{
+						await ReplyAsync($"You do not have a melee weapon equipped!");
+						return;
+					}
+
+					activeCharacter.DefaultMeleeWeapon = null;
+					await _stewardContext.SaveChangesAsync();
+
+					await ReplyAsync($"Melee weapon has been unequipped.");
+					return;
+				case "armor":
+				case "armour":
+					if (activeCharacter.EquippedArmour == null)
+					{
+						await ReplyAsync($"You are not wearing any armour!");
+						return;
+					}
+
+					activeCharacter.EquippedArmour = null;
+					await _stewardContext.SaveChangesAsync();
+
+					await ReplyAsync($"Armour has been unequipped.");
+					return;
+			}
+
+			await ReplyAsync($"\"{slot}\" is not a valid slot. Valid slots are melee/ranged/armour.");
+        }
+
 		[Command("melee")]
 		[RequireActiveCharacter]
 		public async Task AttackWithMeleeWeapon(string attackType = "normal", string weaponName = null)

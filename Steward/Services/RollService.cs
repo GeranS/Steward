@@ -75,9 +75,14 @@ namespace Steward.Services
 			var critRolls = new List<int>();
 			if (crit)
 			{
-				critRolls.Append(rnd.Next(1, weapon.DamageDieSize + 1));
+				for (var i = 0; i < weapon.DamageDieAmount; i++)
+				{
+					critRolls.Add(rnd.Next(1, weapon.DamageDieSize + 1));
+				}
 			}
-			var damage = damageRollsRaw.Sum() + weapon.DamageBonus + attackTypeDamageBonus +critRolls.Sum();
+			strMod = GetStatAsModifier(CharacterAttribute.STR, character);
+			dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
+			var damage = damageRollsRaw.Sum() + weapon.DamageBonus + attackTypeDamageBonus +critRolls.Sum() +strMod +dexMod;
 
 			//TODO: Clean this up into something modular, redefining the entire string each time just isn't maintainable.
 			//Done: cleaned up into something modular
@@ -114,7 +119,7 @@ namespace Steward.Services
 			{
 				damageRollString += $" + {weapon.DamageBonus} from weapon";
 			}
-			damageRollString += $" = {damage}";
+			damageRollString += $" + {strMod}(STR) + {dexMod}(DEX) = {damage}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Melee: {weapon.WeaponName} ({attackType}) by {character.CharacterName}");
 
@@ -160,7 +165,7 @@ namespace Steward.Services
 				damageRollsRaw.Add(rnd.Next(1, weapon.DamageDieSize + 1));
 			}
 
-			var damage = damageRollsRaw.Sum() + weapon.DamageBonus;
+			var damage = damageRollsRaw.Sum() + weapon.DamageBonus + dexMod;
 			if (crit)
 			{
 				damage = damageRollsRaw.Sum() * 2 + weapon.DamageBonus;
@@ -190,7 +195,7 @@ namespace Steward.Services
 			{
 				damageRollString += $" + {weapon.DamageBonus} from weapon";
 			}
-			damageRollString += $" = {damage}";
+			damageRollString += $" + {dexMod}(DEX) = {damage}";
 
 			var embedBuilder = new EmbedBuilder().WithColor(Color.Purple).WithTitle($"Ranged: {weapon.WeaponName}");
 
@@ -344,30 +349,7 @@ namespace Steward.Services
 
 		private static int StatToMod(int stat)
 		{
-			return stat switch
-			{
-				1 => -5,
-				2 => -4,
-				3 => -4,
-				4 => -3,
-				5 => -3,
-				6 => -2,
-				7 => -2,
-				8 => -1,
-				9 => -1,
-				10 => 0,
-				11 => 0,
-				12 => 1,
-				13 => 1,
-				14 => 2,
-				15 => 2,
-				16 => 3,
-				17 => 3,
-				18 => 4,
-				19 => 4,
-				20 => 5,
-				_ => 0
-			};
+			return Convert.ToInt32(Math.Floor((Convert.ToDouble(stat) - 10) / 2));
 		}
 	}
 }
