@@ -64,15 +64,15 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			var recieverSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == receivingCharacter.SpouseId);
+			var receiverSpouse = _stewardContext.PlayerCharacters.FirstOrDefault(c => c.CharacterId == receivingCharacter.SpouseId);
 
-			if (recieverSpouse != null && recieverSpouse.IsAlive())
+			if (receiverSpouse != null && receiverSpouse.IsAlive())
 			{
 				await ReplyAsync($"{receivingCharacter.CharacterName} is already married. Kill their spouse first to marry her/him");
 				return;
 			}
 
-			if (_stewardContext.Proposals.FirstOrDefault(c => c.ProposerId == activeCharacter.CharacterId && c.ProposedId == receivingCharacter.CharacterId) != null)
+			if (_stewardContext.Proposals.FirstOrDefault(c => c.ProposerId == activeCharacter.DiscordUser.DiscordId && c.ProposedId == receivingCharacter.DiscordUser.DiscordId) != null)
 			{
 				await ReplyAsync($"You have already proposed to this Character!");
 				return;
@@ -80,7 +80,7 @@ namespace Steward.Discord.GenericCommands
 
 			if (_stewardContext.Proposals.FirstOrDefault(c => c.ProposedId == activeCharacter.CharacterId && c.ProposerId == receivingCharacter.CharacterId) != null)
 			{
-				await ReplyAsync($"This Character has already proposed to you reply to his advances first. To find the proposal check you DMs");
+				await ReplyAsync($"This Character has already proposed to you, reply to their advances first. To find the proposal check your DMs");
 				return;
 			}
 
@@ -89,13 +89,13 @@ namespace Steward.Discord.GenericCommands
 
             await _stewardContext.SaveChangesAsync();*/
 
-			Proposal NewProposal = new Proposal()
+			var newProposal = new Proposal()
 			{
-				Proposer = commandUser,
-				Proposed = discordUser
+				Proposer = commandUser.Characters.SingleOrDefault(cu => cu.IsAlive()),
+				Proposed = discordUser.Characters.SingleOrDefault(du => du.IsAlive())
 			};
 
-			_stewardContext.Proposals.Add(NewProposal);
+			_stewardContext.Proposals.Add(newProposal);
 			await _stewardContext.SaveChangesAsync();
 
 			//PM player to notify he has been proposed to.
@@ -105,7 +105,7 @@ namespace Steward.Discord.GenericCommands
 			var embedBuilder = new EmbedBuilder
 			{
 				Color = Color.Purple,
-				Title = $"A suitor has approached you! (ProposalID = {NewProposal.ProposalId})",
+				Title = $"A suitor has approached you! (ProposalID = {newProposal.ProposalId})",
 			};
 
 			embedBuilder.AddField(new EmbedFieldBuilder
@@ -117,14 +117,14 @@ namespace Steward.Discord.GenericCommands
 			embedBuilder.AddField(new EmbedFieldBuilder
 			{
 				Name = "Accept or Deny",
-				Value = $"Use \"&accept {NewProposal.ProposalId}\" or \"&deny {NewProposal.ProposalId}\" to respond."
+				Value = $"Use \"&accept {newProposal.ProposalId}\" or \"&deny {newProposal.ProposalId}\" to respond."
 			});
 
 			try
 			{
 				await proposed.SendMessageAsync("", false, embedBuilder.Build());
 			}
-			catch (NullReferenceException e)
+			catch (Exception e)
 			{
 				Console.WriteLine(e.StackTrace);
 				//nothing, I just don't want it to crash the command
@@ -135,7 +135,7 @@ namespace Steward.Discord.GenericCommands
 
 
 		[Command("accept")]
-		public async Task AcceptProposal(int ProposalID)
+		public async Task AcceptProposal(int ProposalId)
 		{
 			var commandUser = _stewardContext.DiscordUsers
 					.Include(du => du.Characters)
@@ -143,47 +143,45 @@ namespace Steward.Discord.GenericCommands
 
 			var proposal = _stewardContext.Proposals
 				.Include(p => p.Proposed)
-				.ThenInclude(p => p.Characters)
 				.Include(p => p.Proposer)
-				.ThenInclude(p => p.Characters)
-				.FirstOrDefault(p => p.ProposalId == ProposalID);
+				.FirstOrDefault(p => p.ProposalId == ProposalId);
 
 			if (proposal == null)
 			{
-				await ReplyAsync($"No Proposal with ID {ProposalID} found.");
+				await ReplyAsync($"No Proposal with ID {ProposalId} found.");
 				return;
 			}
 
-			if (commandUser.DiscordId != proposal.ProposedId)
+			var proposerChar = proposal.Proposer;
+
+			var proposedChar = proposal.Proposed;
+
+			if (proposedChar != proposal.Proposed)
 			{
 				await ReplyAsync("You can only reply to proposals directed at you.");
 				return;
 			}
 
-			var proposerChar = proposal.Proposer.Characters.FirstOrDefault(c => c.YearOfDeath == null);
-
-			var proposedChar = proposal.Proposed.Characters.FirstOrDefault(c => c.YearOfDeath == null);
-
-			if (proposerChar == null)
+			if (!proposerChar.IsAlive())
 			{
 				await ReplyAsync("No living Character has been found for the Proposer. He might have died already.");
 				return;
 			}
-			if (proposedChar == null)
+			if (!proposedChar.IsAlive())
 			{
 				await ReplyAsync("Could not find living Character.");
 				return;
 			}
 
-			if (proposerChar.SpouseId != null && _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == proposerChar.CharacterId && p.YearOfDeath != null) == null)
+			if (proposerChar.SpouseId != null && _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == proposerChar.CharacterId && p.YearOfDeath == null) != null)
 			{
 				await ReplyAsync("Your suitor has already married another one. You are too late.");
 				return;
 			}
 
-			if (proposedChar.SpouseId != null && _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == proposedChar.CharacterId && p.YearOfDeath != null) == null)
+			if (proposedChar.SpouseId != null && _stewardContext.PlayerCharacters.FirstOrDefault(p => p.SpouseId == proposedChar.CharacterId && p.YearOfDeath == null) != null)
 			{
-				await ReplyAsync("You are already married! Kill your spouse first to accept this proposal");
+				await ReplyAsync("You are already married! Kill your spouse first to accept this proposal.");
 				return;
 			}
 
@@ -192,9 +190,9 @@ namespace Steward.Discord.GenericCommands
 
 			try
 			{
-				await _client.GetUser(ulong.Parse(proposal.ProposerId)).SendMessageAsync($"Congrats {proposedChar.CharacterName} has accepted your proposal for marriage! You are now officially married!");
+				await _client.GetUser(ulong.Parse(proposal.Proposer.DiscordUserId)).SendMessageAsync($"Congrats {proposedChar.CharacterName} has accepted your proposal for marriage! You are now officially married!");
 			}
-			catch (NullReferenceException e)
+			catch (Exception e)
 			{
 				Console.WriteLine(e.StackTrace);
 				//nothing, I just don't want it to crash the command

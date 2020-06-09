@@ -13,5 +13,6 @@ namespace Steward
 		public string SqlUsername { get; set; }
 		public string DatabaseName { get; set; }
 		public string Token { get; set; }
+		public string ImageBasePath { get; set; }
 	}
 }

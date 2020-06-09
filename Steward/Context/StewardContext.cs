@@ -95,6 +95,16 @@ namespace Steward.Context
 				.WithOne(ci => ci.PlayerCharacter)
 				.HasForeignKey(ci => ci.PlayerCharacterId);
 
+			modelBuilder.Entity<Proposal>()
+				.HasOne(p => p.Proposer)
+				.WithMany()
+				.HasForeignKey(p => p.ProposerId);
+
+			modelBuilder.Entity<Proposal>()
+				.HasOne(p => p.Proposed)
+				.WithMany()
+				.HasForeignKey(p => p.ProposedId);
+
 			modelBuilder.Entity<CharacterInventory>()
 				.HasOne(ci => ci.ValkFinderWeapon)
 				.WithMany()
@@ -246,29 +256,6 @@ namespace Steward.Context
 						DEX = 1,
 						PER = -1,
 						HouseName = "Harcaster"
-					}
-				});
-
-			modelBuilder.Entity<ValkFinderWeapon>()
-				.HasData(new ValkFinderWeapon[]
-				{
-					new ValkFinderWeapon()
-					{
-						WeaponName = "Sword",
-						IsRanged = false,
-						DamageDieSize = 8
-					},
-					new ValkFinderWeapon()
-					{
-						WeaponName = "Dagger",
-						IsRanged = false,
-						DamageDieSize = 6
-					},
-					new ValkFinderWeapon()
-					{
-						WeaponName = "Shortbow",
-						IsRanged = true,
-						DamageDieSize = 8
 					}
 				});
 

@@ -57,39 +57,6 @@ namespace Steward.Discord.GenericCommands
             await ReplyAsync($"{valkFinderArmour.ArmourName} has been equipped.");
         }
 
-        [Command("unequip armour")]
-        [RequireActiveCharacter]
-        public async Task UnEquipArmour(string armourName)
-        {
-            var activeCharacter =
-                _stewardContext.PlayerCharacters
-                    .Include(c => c.DefaultMeleeWeapon)
-                    .Include(c => c.DefaultRangedWeapon)
-                    .SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
-
-            var valkFinderArmour =
-                _stewardContext.ValkFinderArmours.FirstOrDefault(w => w.ArmourName == armourName);
-
-            if (valkFinderArmour == null)
-            {
-                await ReplyAsync($"Could not find Armour.");
-                return;
-            }
-
-            if (activeCharacter.EquippedArmour.ValkFinderArmourId != valkFinderArmour.ValkFinderArmourId)
-            {
-                await ReplyAsync($"You do not have a {valkFinderArmour.ArmourName} equipped!");
-                return;
-            }
-
-            activeCharacter.EquippedArmour = null;
-
-            _stewardContext.PlayerCharacters.Update(activeCharacter);
-            await _stewardContext.SaveChangesAsync();
-
-            await ReplyAsync($"{valkFinderArmour.ArmourName} has been unequipped.");
-        }
-
         [Command("armours")]
         public async Task ArmourList()
         {

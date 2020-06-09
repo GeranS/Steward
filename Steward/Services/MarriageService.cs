@@ -14,38 +14,39 @@ using Discord;
 using Microsoft.EntityFrameworkCore;
 using ImageProcessor;
 using ImageProcessor.Imaging.Formats;
+using Microsoft.Extensions.Options;
 
 namespace Steward.Services
 {
     public class MarriageService
     {
         private readonly DiscordSocketClient _client;
-
+        private readonly IOptions<StewardConfig> _config;
         private readonly StewardContext _stewardContext;
 
-        public MarriageService(StewardContext stewardContext, DiscordSocketClient client)
+        public MarriageService(StewardContext stewardContext, DiscordSocketClient client, IOptions<StewardConfig> config)
         {
             _client = client;
             _stewardContext = stewardContext;
+            _config = config;
         }
 
         public async Task SendMarriageMessage(Proposal proposal)
         {
-            var proposerID = proposal.Proposer.DiscordId;
-            var proposedID = proposal.Proposed.DiscordId;
+            var proposerID = proposal.Proposer.DiscordUserId;
+            var proposedID = proposal.Proposed.DiscordUserId;
             var proposer = _client.GetUser(ulong.Parse(proposerID));
             var proposed = _client.GetUser(ulong.Parse(proposedID));
             var marriageChannels = _stewardContext.MarriageChannels.ToList();
-            var ProposerChar = proposal.Proposer.Characters.FirstOrDefault(c => c.IsAlive());
+            var ProposerChar = proposal.Proposer;
 
-            var ProposedChar = proposal.Proposed.Characters.FirstOrDefault(c => c.IsAlive());
+            var ProposedChar = proposal.Proposed;
 
-            var weddingphoto = CreateWeddingPhoto(GetAvatarImage(proposer), GetAvatarImage(proposed));
-            
+            var weddingPhoto = CreateWeddingPhoto(GetAvatarImage(proposer), GetAvatarImage(proposed));
 
             var embedBuilder = new EmbedBuilder()
             {
-                Title = "A new noble marriage has happend!"
+                Title = "A new noble marriage has happened!"
             };
             embedBuilder.AddField( new EmbedFieldBuilder()
             {
@@ -54,8 +55,8 @@ namespace Steward.Services
                 IsInline = false
             });
             string fileName = "weddingphoto.png";
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Steward\data\", fileName);
-            weddingphoto.Save(path);
+            string path = Path.Combine(_config.Value.ImageBasePath, fileName);
+            weddingPhoto.Save(path);
 
             foreach (var marriageChannel in marriageChannels.Select(marriage => _client.GetChannel(ulong.Parse(marriage.ChannelId)) as SocketTextChannel))
             {
@@ -78,8 +79,6 @@ namespace Steward.Services
         {
             System.Drawing.Image image = null;
 
-
-
             try
             {
                 System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(user.GetAvatarUrl());
@@ -96,6 +95,7 @@ namespace Steward.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.StackTrace);
                 return null;
             }
 
@@ -112,7 +112,7 @@ namespace Steward.Services
             spouse2Img.Resize(new Size(500, 500));
 
             string fileName = "heart.png";
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Steward\data\", fileName);
+            string path = Path.Combine(_config.Value.ImageBasePath, fileName);
 
             var heart = new ImageFactory(false);
             heart.Load(path);
@@ -146,7 +146,7 @@ namespace Steward.Services
             spouse2Img.Resize(new Size(500, 500));
 
             string fileName = "brokenheart.png";
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Steward\data\", fileName);
+            string path = Path.Combine(_config.Value.ImageBasePath, fileName);
 
             var heart = new ImageFactory(false);
             heart.Load(path);
@@ -190,11 +190,11 @@ namespace Steward.Services
             embedBuilder.AddField(new EmbedFieldBuilder()
             {
                 Name = "The divorcees are:",
-                Value = $"**{ProposerChar.CharacterName}**({proposer.ToString()}) married **{ProposedChar.CharacterName}**({proposed.ToString()})",
+                Value = $"**{ProposerChar.CharacterName}**({proposer.ToString()}) and **{ProposedChar.CharacterName}**({proposed.ToString()})",
                 IsInline = false
             });
             string fileName = "divorcephoto.png";
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Steward\data\", fileName);
+            string path = Path.Combine(_config.Value.ImageBasePath, fileName);
             DivorcePhoto.Save(path);
 
             foreach (var marriageChannel in marriageChannels.Select(marriage => _client.GetChannel(ulong.Parse(marriage.ChannelId)) as SocketTextChannel))

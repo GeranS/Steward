@@ -67,45 +67,59 @@ namespace Steward.Discord.GenericCommands
 			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been equipped.");
 		}
 
-		[Command("unequip weapon")]
+		[Command("unequip")]
 		[RequireActiveCharacter]
-		public async Task UnequipWeapon(string weaponName)
+		public async Task UnequipWeapon(string slot)
         {
 			var activeCharacter =
 				_stewardContext.PlayerCharacters
 					.Include(c => c.DefaultMeleeWeapon)
 					.Include(c => c.DefaultRangedWeapon)
+					.Include(c => c.EquippedArmour)
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == null);
 
-			var valkFinderWeapon =
-				_stewardContext.ValkFinderWeapons.FirstOrDefault(w => w.WeaponName == weaponName);
-
-			if (valkFinderWeapon == null)
+			switch (slot)
 			{
-				await ReplyAsync($"Could not find weapon.");
-				return;
+				case "ranged":
+					if (activeCharacter.DefaultRangedWeapon == null)
+					{
+						await ReplyAsync($"You do not have a ranged weapon equipped!");
+						return;
+					}
+					activeCharacter.DefaultRangedWeapon = null;
+					await _stewardContext.SaveChangesAsync();
+
+					await ReplyAsync($"Ranged weapon has been unequipped.");
+					return;
+				case "melee":
+					if (activeCharacter.DefaultMeleeWeapon == null)
+					{
+						await ReplyAsync($"You do not have a melee weapon equipped!");
+						return;
+					}
+
+					activeCharacter.DefaultMeleeWeapon = null;
+					await _stewardContext.SaveChangesAsync();
+
+					await ReplyAsync($"Melee weapon has been unequipped.");
+					return;
+				case "armor":
+				case "armour":
+					if (activeCharacter.EquippedArmour == null)
+					{
+						await ReplyAsync($"You are not wearing any armour!");
+						return;
+					}
+
+					activeCharacter.EquippedArmour = null;
+					await _stewardContext.SaveChangesAsync();
+
+					await ReplyAsync($"Armour has been unequipped.");
+					return;
 			}
 
-			if (activeCharacter.DefaultMeleeWeapon.ValkFinderWeaponId != valkFinderWeapon.ValkFinderWeaponId || activeCharacter.DefaultRangedWeapon.ValkFinderWeaponId != valkFinderWeapon.ValkFinderWeaponId)
-			{
-				await ReplyAsync($"You do not have a {valkFinderWeapon.WeaponName} equipped!");
-				return;
-			}
-
-			if (valkFinderWeapon.IsRanged)
-			{
-				activeCharacter.DefaultRangedWeapon = null;
-			}
-			else
-			{
-				activeCharacter.DefaultMeleeWeapon = null;
-			}
-
-			_stewardContext.PlayerCharacters.Update(activeCharacter);
-			await _stewardContext.SaveChangesAsync();
-
-			await ReplyAsync($"{valkFinderWeapon.WeaponName} has been unequipped.");
-		}
+			await ReplyAsync($"\"{slot}\" is not a valid slot. Valid slots are melee/ranged/armour.");
+        }
 
 		[Command("melee")]
 		[RequireActiveCharacter]

@@ -675,44 +675,6 @@ namespace Steward.Migrations
                     b.HasKey("ValkFinderWeaponId");
 
                     b.ToTable("ValkFinderWeapons");
-
-                    b.HasData(
-                        new
-                        {
-                            ValkFinderWeaponId = "52d3bee2-a79a-425d-bff2-9a3a5972aa72",
-                            DamageBonus = 0,
-                            DamageDieAmount = 0,
-                            DamageDieSize = 8,
-                            HitBonus = 0,
-                            IsRanged = false,
-                            IsUnique = false,
-                            WeaponName = "Sword",
-                            WeaponTrait = 0
-                        },
-                        new
-                        {
-                            ValkFinderWeaponId = "8045ceb5-5974-458f-95f0-2a9aded90a32",
-                            DamageBonus = 0,
-                            DamageDieAmount = 0,
-                            DamageDieSize = 6,
-                            HitBonus = 0,
-                            IsRanged = false,
-                            IsUnique = false,
-                            WeaponName = "Dagger",
-                            WeaponTrait = 0
-                        },
-                        new
-                        {
-                            ValkFinderWeaponId = "418b7d5c-da51-4dc4-9edd-e1d346856d11",
-                            DamageBonus = 0,
-                            DamageDieAmount = 0,
-                            DamageDieSize = 8,
-                            HitBonus = 0,
-                            IsRanged = true,
-                            IsUnique = false,
-                            WeaponName = "Shortbow",
-                            WeaponTrait = 0
-                        });
                 });
 
             modelBuilder.Entity("Steward.Context.Models.Year", b =>
@@ -810,11 +772,11 @@ namespace Steward.Migrations
 
             modelBuilder.Entity("Steward.Context.Models.Proposal", b =>
                 {
-                    b.HasOne("Steward.Context.Models.DiscordUser", "Proposed")
+                    b.HasOne("Steward.Context.Models.PlayerCharacter", "Proposed")
                         .WithMany()
                         .HasForeignKey("ProposedId");
 
-                    b.HasOne("Steward.Context.Models.DiscordUser", "Proposer")
+                    b.HasOne("Steward.Context.Models.PlayerCharacter", "Proposer")
                         .WithMany()
                         .HasForeignKey("ProposerId");
                 });
