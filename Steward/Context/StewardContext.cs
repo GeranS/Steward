@@ -35,6 +35,9 @@ namespace Steward.Context
 		public DbSet<ValkFinderArmour> ValkFinderArmours { get; set; }
 		public DbSet<ValkFinderItem> ValkFinderItems { get; set; }
 		public DbSet<CharacterInventory> CharacterInventories { get; set; }
+		public DbSet<Proposal> Proposals { get; set; }
+		public DbSet<MarriageChannel> MarriageChannels { get; set; }
+
 
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -91,6 +94,16 @@ namespace Steward.Context
 				.HasMany(pc => pc.CharacterInventories)
 				.WithOne(ci => ci.PlayerCharacter)
 				.HasForeignKey(ci => ci.PlayerCharacterId);
+
+			modelBuilder.Entity<Proposal>()
+				.HasOne(p => p.Proposer)
+				.WithMany()
+				.HasForeignKey(p => p.ProposerId);
+
+			modelBuilder.Entity<Proposal>()
+				.HasOne(p => p.Proposed)
+				.WithMany()
+				.HasForeignKey(p => p.ProposedId);
 
 			modelBuilder.Entity<CharacterInventory>()
 				.HasOne(ci => ci.ValkFinderWeapon)
@@ -243,29 +256,6 @@ namespace Steward.Context
 						DEX = 1,
 						PER = -1,
 						HouseName = "Harcaster"
-					}
-				});
-
-			modelBuilder.Entity<ValkFinderWeapon>()
-				.HasData(new ValkFinderWeapon[]
-				{
-					new ValkFinderWeapon()
-					{
-						WeaponName = "Sword",
-						IsRanged = false,
-						DamageDieSize = 8
-					},
-					new ValkFinderWeapon()
-					{
-						WeaponName = "Dagger",
-						IsRanged = false,
-						DamageDieSize = 6
-					},
-					new ValkFinderWeapon()
-					{
-						WeaponName = "Shortbow",
-						IsRanged = true,
-						DamageDieSize = 8
 					}
 				});
 

@@ -25,6 +25,7 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("equip armour")]
+        [RequireActiveCharacter]
         public async Task EquipArmour(string armourName)
         {
             var activeCharacter =

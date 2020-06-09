@@ -280,6 +280,19 @@ namespace Steward.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Steward.Context.Models.MarriageChannel", b =>
+                {
+                    b.Property<string>("ChannelId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ServerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ChannelId");
+
+                    b.ToTable("MarriageChannels");
+                });
+
             modelBuilder.Entity("Steward.Context.Models.PlayerCharacter", b =>
                 {
                     b.Property<string>("CharacterId")
@@ -367,6 +380,28 @@ namespace Steward.Migrations
                             STR = 12,
                             YearOfBirth = 1980
                         });
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.Proposal", b =>
+                {
+                    b.Property<long>("ProposalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("ProposedId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProposerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ProposalId");
+
+                    b.HasIndex("ProposedId");
+
+                    b.HasIndex("ProposerId");
+
+                    b.ToTable("Proposals");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.StaffAction", b =>
@@ -640,44 +675,6 @@ namespace Steward.Migrations
                     b.HasKey("ValkFinderWeaponId");
 
                     b.ToTable("ValkFinderWeapons");
-
-                    b.HasData(
-                        new
-                        {
-                            ValkFinderWeaponId = "d2019564-523d-42b6-b3bf-f2ef47f305c0",
-                            DamageBonus = 0,
-                            DamageDieAmount = 0,
-                            DamageDieSize = 8,
-                            HitBonus = 0,
-                            IsRanged = false,
-                            IsUnique = false,
-                            WeaponName = "Sword",
-                            WeaponTrait = 0
-                        },
-                        new
-                        {
-                            ValkFinderWeaponId = "31412e04-220e-4a15-8ffc-751b6828d4c9",
-                            DamageBonus = 0,
-                            DamageDieAmount = 0,
-                            DamageDieSize = 6,
-                            HitBonus = 0,
-                            IsRanged = false,
-                            IsUnique = false,
-                            WeaponName = "Dagger",
-                            WeaponTrait = 0
-                        },
-                        new
-                        {
-                            ValkFinderWeaponId = "4983588c-c22e-4e9d-9448-1bc021d590cc",
-                            DamageBonus = 0,
-                            DamageDieAmount = 0,
-                            DamageDieSize = 8,
-                            HitBonus = 0,
-                            IsRanged = true,
-                            IsUnique = false,
-                            WeaponName = "Shortbow",
-                            WeaponTrait = 0
-                        });
                 });
 
             modelBuilder.Entity("Steward.Context.Models.Year", b =>
@@ -771,6 +768,17 @@ namespace Steward.Migrations
                     b.HasOne("Steward.Context.Models.House", "House")
                         .WithMany("HouseMembers")
                         .HasForeignKey("HouseId");
+                });
+
+            modelBuilder.Entity("Steward.Context.Models.Proposal", b =>
+                {
+                    b.HasOne("Steward.Context.Models.PlayerCharacter", "Proposed")
+                        .WithMany()
+                        .HasForeignKey("ProposedId");
+
+                    b.HasOne("Steward.Context.Models.PlayerCharacter", "Proposer")
+                        .WithMany()
+                        .HasForeignKey("ProposerId");
                 });
 
             modelBuilder.Entity("Steward.Context.Models.StaffAction", b =>
