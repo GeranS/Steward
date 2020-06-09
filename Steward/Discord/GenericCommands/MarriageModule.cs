@@ -135,11 +135,14 @@ namespace Steward.Discord.GenericCommands
 
 
 		[Command("accept")]
+		[RequireActiveCharacter]
 		public async Task AcceptProposal(int ProposalId)
 		{
 			var commandUser = _stewardContext.DiscordUsers
 					.Include(du => du.Characters)
 					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+			var activeCharacter = commandUser.Characters.SingleOrDefault(cu => cu.IsAlive());
 
 			var proposal = _stewardContext.Proposals
 				.Include(p => p.Proposed)
@@ -156,7 +159,7 @@ namespace Steward.Discord.GenericCommands
 
 			var proposedChar = proposal.Proposed;
 
-			if (proposedChar != proposal.Proposed)
+			if (activeCharacter.CharacterId != proposal.ProposedId)
 			{
 				await ReplyAsync("You can only reply to proposals directed at you.");
 				return;
@@ -207,11 +210,14 @@ namespace Steward.Discord.GenericCommands
 		}
 
 		[Command("deny")]
+		[RequireActiveCharacter]
 		public async Task DenyProposal(int ProposalID)
 		{
 			var commandUser = _stewardContext.DiscordUsers
 					.Include(du => du.Characters)
 					.SingleOrDefault(u => u.DiscordId == Context.User.Id.ToString());
+
+			var activeCharacter = commandUser.Characters.SingleOrDefault(cu => cu.IsAlive());
 
 			var proposal = _stewardContext.Proposals.FirstOrDefault(p => p.ProposalId == ProposalID);
 
@@ -221,7 +227,7 @@ namespace Steward.Discord.GenericCommands
 				return;
 			}
 
-			if (commandUser.DiscordId != proposal.ProposedId)
+			if (activeCharacter.CharacterId != proposal.ProposedId)
 			{
 				await ReplyAsync("You can only reply to proposals directed at you.");
 				return;
