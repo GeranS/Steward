@@ -46,13 +46,16 @@ namespace Steward.Services
 
             var rnd = new Random();
 
-            var strMod = GetStatAsModifier(CharacterAttribute.STR, character);
+			var strMod = 0; //GetStatAsModifier(CharacterAttribute.STR, character);
             var dexMod = 0; //GetStatAsModifier(CharacterAttribute.DEX, character); -- ditto as below
 
 			if (weapon.WeaponTrait == WeaponTrait.Finesse)
 			{
-				strMod = 0;
 				dexMod = GetStatAsModifier(CharacterAttribute.DEX, character); 
+			}
+			else
+			{
+				strMod = GetStatAsModifier(CharacterAttribute.STR, character);
 			}
 
             var attackRollRaw = rnd.Next(1, 21);
@@ -80,8 +83,6 @@ namespace Steward.Services
 					critRolls.Add(rnd.Next(1, weapon.DamageDieSize + 1));
 				}
 			}
-			strMod = GetStatAsModifier(CharacterAttribute.STR, character);
-			dexMod = GetStatAsModifier(CharacterAttribute.DEX, character);
 			var damage = damageRollsRaw.Sum() + weapon.DamageBonus + attackTypeDamageBonus +critRolls.Sum() +strMod +dexMod;
 
 			//TODO: Clean this up into something modular, redefining the entire string each time just isn't maintainable.
