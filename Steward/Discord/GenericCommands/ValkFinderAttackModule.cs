@@ -206,65 +206,76 @@ namespace Steward.Discord.GenericCommands
 		[Command("weapons")]
 		public async Task WeaponList()
 		{
-			var embedBuilder = new EmbedBuilder();
-
 			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList().Where(w => !w.IsUnique);
 
 			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
 
-			var stringBuilder = new StringBuilder();
+			var amountOfEmbeds = (sortedValkFinderWeapons.Count() - 1) / 10 + 1;
 
-			foreach (var weapon in sortedValkFinderWeapons)
+			for (var i = 0; i < amountOfEmbeds; i++)
 			{
-				if (weapon.IsRanged)
+				var embedBuilder = new EmbedBuilder();
+
+				var stringBuilder = new StringBuilder();
+
+				var weaponsCount = sortedValkFinderWeapons.Count() - i * 10 < 10
+					? sortedValkFinderWeapons.Count() - i * 10
+					: 10;
+
+				foreach (var weapon in sortedValkFinderWeapons.ToList().GetRange(i * 10, weaponsCount))
 				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+					if (weapon.IsRanged)
+					{
+						stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+					}
+					else if (!weapon.IsRanged)
+					{
+						stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+					}
 				}
-				else if (!weapon.IsRanged)
-				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
-				}
+
+				embedBuilder.AddField("Weapons", stringBuilder.ToString());
+
+				await ReplyAsync(embed: embedBuilder.Build());
 			}
-
-			embedBuilder.AddField("Weapons", stringBuilder.ToString());
-
-			await ReplyAsync(embed: embedBuilder.Build());
 		}
 
 		[Command("weapons unique")]
 		[RequireStewardPermission]
 		public async Task WeaponUniqueList()
 		{
-			var embedBuilder = new EmbedBuilder();
-
 			var valkFinderWeapons = _stewardContext.ValkFinderWeapons.ToList().Where(w => w.IsUnique);
 
 			var sortedValkFinderWeapons = valkFinderWeapons.OrderBy(v => v.IsRanged).ThenBy(v => v.WeaponName);
 
-			var stringBuilder = new StringBuilder();
+			var amountOfEmbeds = (sortedValkFinderWeapons.Count() - 1) / 10 + 1;
 
-			foreach (var weapon in sortedValkFinderWeapons)
+			for (var i = 0; i < amountOfEmbeds; i++)
 			{
-				if (weapon.IsRanged)
-				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
-				}
-				else if (!weapon.IsRanged)
-				{
-					stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
-				}
-			}
+				var embedBuilder = new EmbedBuilder();
 
-			if (stringBuilder.Length == 0)
-			{
-				embedBuilder.AddField("Weapons", "There are no unique weapons.");
-			}
-			else
-			{
+				var stringBuilder = new StringBuilder();
+
+				var weaponsRangeCount = sortedValkFinderWeapons.Count() - i * 10 < 10
+					? sortedValkFinderWeapons.Count() - i * 10
+					: 10;
+
+				foreach (var weapon in sortedValkFinderWeapons.ToList().GetRange(i * 10, weaponsRangeCount))
+				{
+					if (weapon.IsRanged)
+					{
+						stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} ranged , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+					}
+					else if (!weapon.IsRanged)
+					{
+						stringBuilder.AppendLine($"{weapon.WeaponName}, Damage: {weapon.DamageDieAmount}d{weapon.DamageDieSize}+{weapon.DamageBonus} melee , Hit Bonus: {weapon.HitBonus} , Trait: {weapon.WeaponTrait}");
+					}
+				}
+
 				embedBuilder.AddField("Weapons", stringBuilder.ToString());
-			}
 
-			await ReplyAsync(embed: embedBuilder.Build());
+				await ReplyAsync(embed: embedBuilder.Build());
+			}
 		}
 
 		[Command("add weapon")]

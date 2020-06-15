@@ -60,51 +60,62 @@ namespace Steward.Discord.GenericCommands
         [Command("armours")]
         public async Task ArmourList()
         {
-            var embedBuilder = new EmbedBuilder();
-
             var valkFinderArmours = _stewardContext.ValkFinderArmours.ToList().Where(a => !a.IsUnique );
 
             var sortedValkFinderArmours = valkFinderArmours.OrderBy(v => v.ArmourName);
 
-            var stringBuilder = new StringBuilder();
+            var amountOfEmbeds = (sortedValkFinderArmours.Count() - 1) / 10 + 1;
 
-            foreach (var armour in sortedValkFinderArmours)
+            for (var i = 0; i < amountOfEmbeds; i++)
             {
-                stringBuilder.AppendLine($"{armour.ArmourName}, AC: {armour.ArmourClassBonus}, DEX Penalty: {armour.DexCost}");
+	            var embedBuilder = new EmbedBuilder();
+
+                var stringBuilder = new StringBuilder();
+
+	            var armoursCount = sortedValkFinderArmours.Count() - i * 10 < 10
+		            ? sortedValkFinderArmours.Count() - i * 10
+		            : 10;
+
+	            foreach (var armour in sortedValkFinderArmours.ToList().GetRange(i*10,armoursCount))
+	            {
+		            stringBuilder.AppendLine($"{armour.ArmourName}, AC: {armour.ArmourClassBonus}, DEX Penalty: {armour.DexCost}");
+	            }
+
+	            embedBuilder.AddField("Armour", stringBuilder.ToString());
+
+	            await ReplyAsync(embed: embedBuilder.Build());
             }
-
-            embedBuilder.AddField("Armour", stringBuilder.ToString());
-
-            await ReplyAsync(embed: embedBuilder.Build());
         }
 
         [Command("armours unique")]
         [RequireStewardPermission]
         public async Task ArmourListUnique()
         {
-            var embedBuilder = new EmbedBuilder();
-
-            var valkFinderArmours = _stewardContext.ValkFinderArmours.ToList().Where(a => a.IsUnique);
+	        var valkFinderArmours = _stewardContext.ValkFinderArmours.ToList().Where(a => a.IsUnique);
 
             var sortedValkFinderArmours = valkFinderArmours.OrderBy(v => v.ArmourName);
 
-            var stringBuilder = new StringBuilder();
+            var amountOfEmbeds = (sortedValkFinderArmours.Count() - 1) / 10 + 1;
 
-            foreach (var armour in sortedValkFinderArmours)
+            for (var i = 0; i < amountOfEmbeds; i++)
             {
-                stringBuilder.AppendLine($"{armour.ArmourName}, AC: {armour.ArmourClassBonus}, DEX Penalty: {armour.DexCost}");
-            }
+	            var embedBuilder = new EmbedBuilder();
 
-            if (stringBuilder.Length == 0)
-            {
-	            embedBuilder.AddField("Armour", "There are no unique sets of armour.");
-            }
-            else
-            {
+                var stringBuilder = new StringBuilder();
+
+	            var armoursCount = sortedValkFinderArmours.Count() - i * 10 < 10
+		            ? sortedValkFinderArmours.Count() - i * 10
+		            : 10;
+
+	            foreach (var armour in sortedValkFinderArmours.ToList().GetRange(i * 10, armoursCount))
+	            {
+		            stringBuilder.AppendLine($"{armour.ArmourName}, AC: {armour.ArmourClassBonus}, DEX Penalty: {armour.DexCost}");
+	            }
+
 	            embedBuilder.AddField("Armour", stringBuilder.ToString());
-            }
 
-            await ReplyAsync(embed: embedBuilder.Build());
+	            await ReplyAsync(embed: embedBuilder.Build());
+            }
         }
 
 
