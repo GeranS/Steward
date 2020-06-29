@@ -63,7 +63,7 @@ namespace Steward.Discord.GenericCommands
 			}
 			if (response.Length > 1800)
 			{
-				await ReplyAsync("Description must be shorter than 1800 characters.");
+				await ReplyAsync("Description must be shorter than 1000 characters.");
 				return;
 			}
 			if (!Enum.TryParse(stringStatus, true, out StaffActionStatus status))
