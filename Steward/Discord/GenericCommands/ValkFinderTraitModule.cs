@@ -152,7 +152,7 @@ namespace Steward.Discord.GenericCommands
 
 			PlayerCharacter activeCharacter = null;
 
-			
+
 			discordUser = _stewardContext.DiscordUsers
 				.Include(du => du.Characters)
 				.ThenInclude(c => c.CharacterTraits)
@@ -169,7 +169,7 @@ namespace Steward.Discord.GenericCommands
 
 			var traitAlreadyExistsList = activeCharacter.CharacterTraits.Where(ct => ct.Trait.IsEducation);
 
-			if (traitAlreadyExistsList.Count()>0)
+			if (traitAlreadyExistsList.Count() > 0)
 			{
 				await ReplyAsync("You already have an education trait!");
 				return;
@@ -190,113 +190,131 @@ namespace Steward.Discord.GenericCommands
 		[RequireStewardPermission]
 		public async Task ShowTraitsAdmin()
 		{
-			var traits = _stewardContext.Traits.Where(t => t.IsSecret == true);
+			var traits = _stewardContext.Traits
+				.Where(t => t.IsSecret == true && !t.IsEducation)
+				.OrderBy(t => t.Description);
 
-			var embedBuilder = new EmbedBuilder()
-				.WithColor(Color.Purple)
-				.WithTitle("Secret Traits");
+			var amountOfEmbeds = (traits.Count() - 1) / 10 + 1;
 
-			foreach (var trait in traits)
+			for (var i = 0; i < amountOfEmbeds; i++)
 			{
-				var bonusString = "";
+				var embedBuilder = new EmbedBuilder()
+					.WithColor(Color.Purple)
+					.WithTitle($"Secret Traits Page {i + 1}");
 
-				if (trait.STR != 0)
+				var traitsCount = traits.Count() - i * 10 < 10 ? traits.Count() - i * 10 : 10;
+
+				foreach (var trait in traits.ToList().GetRange(i * 10, traitsCount))
 				{
-					bonusString += $"STR({trait.STR}) ";
-				}
-				if (trait.DEX != 0)
-				{
-					bonusString += $"DEX({trait.DEX}) ";
-				}
-				if (trait.END != 0)
-				{
-					bonusString += $"END({trait.END}) ";
-				}
-				if (trait.PER != 0)
-				{
-					bonusString += $"PER({trait.PER}) ";
-				}
-				if (trait.INT != 0)
-				{
-					bonusString += $"INT({trait.INT}) ";
-				}
-				if (trait.ArmorClassBonus != 0)
-				{
-					bonusString += $"AC({trait.ArmorClassBonus}) ";
-				}
-				if (trait.AbilityPointBonus != 0)
-				{
-					bonusString += $"AP({trait.AbilityPointBonus}) ";
-				}
-				if (trait.HealthPoolBonus != 0)
-				{
-					bonusString += $"HP({trait.HealthPoolBonus}) ";
-				}
-				if (bonusString == "")
-				{
-					bonusString = "No Buffs";
+					var bonusString = "";
+
+					if (trait.STR != 0)
+					{
+						bonusString += $"STR({trait.STR}) ";
+					}
+					if (trait.DEX != 0)
+					{
+						bonusString += $"DEX({trait.DEX}) ";
+					}
+					if (trait.END != 0)
+					{
+						bonusString += $"END({trait.END}) ";
+					}
+					if (trait.PER != 0)
+					{
+						bonusString += $"PER({trait.PER}) ";
+					}
+					if (trait.INT != 0)
+					{
+						bonusString += $"INT({trait.INT}) ";
+					}
+					if (trait.ArmorClassBonus != 0)
+					{
+						bonusString += $"AC({trait.ArmorClassBonus}) ";
+					}
+					if (trait.AbilityPointBonus != 0)
+					{
+						bonusString += $"AP({trait.AbilityPointBonus}) ";
+					}
+					if (trait.HealthPoolBonus != 0)
+					{
+						bonusString += $"HP({trait.HealthPoolBonus}) ";
+					}
+					if (bonusString == "")
+					{
+						bonusString = "No Buffs";
+					}
+
+					embedBuilder.AddField(trait.Description, bonusString, false);
 				}
 
-				embedBuilder.AddField(trait.Description, bonusString, false);
+				await ReplyAsync(embed: embedBuilder.Build());
 			}
-
-			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
 
 		[Command("traits")]
 		public async Task ShowTraits()
 		{
-			var traits = _stewardContext.Traits.Where(t => t.IsSecret == false && !t.IsEducation);
+			var traits = _stewardContext.Traits
+				.Where(t => t.IsSecret == false && !t.IsEducation)
+				.OrderBy(t => t.Description);
 
-			var embedBuilder = new EmbedBuilder()
-				.WithColor(Color.Purple)
-				.WithTitle("Traits");
+			var amountOfEmbeds = (traits.Count() - 1) / 10 + 1;
 
-			foreach (var trait in traits)
+			for (var i = 0; i < amountOfEmbeds; i++)
 			{
-				var bonusString = "";
+				var embedBuilder = new EmbedBuilder()
+					.WithColor(Color.Purple)
+					.WithTitle($"Traits Page {i + 1}");
 
-				if (trait.STR != 0)
+				var traitsCount = traits.Count() - i * 10 < 10 ? traits.Count() - i * 10 : 10;
+
+				foreach (var trait in traits.ToList().GetRange(i * 10, traitsCount))
 				{
-					bonusString += $"STR({trait.STR}) ";
-				}
-				if (trait.DEX != 0)
-				{
-					bonusString += $"DEX({trait.DEX}) ";
-				}
-				if (trait.END != 0)
-				{
-					bonusString += $"END({trait.END}) ";
-				}
-				if (trait.PER != 0)
-				{
-					bonusString += $"PER({trait.PER}) ";
-				}
-				if (trait.INT != 0)
-				{
-					bonusString += $"INT({trait.INT}) ";
-				}
-				if (trait.ArmorClassBonus != 0)
-				{
-					bonusString += $"AC({trait.ArmorClassBonus}) ";
-				}
-				if (trait.AbilityPointBonus != 0)
-				{
-					bonusString += $"AP({trait.AbilityPointBonus}) ";
-				}
-				if (trait.HealthPoolBonus != 0)
-				{
-					bonusString += $"HP({trait.HealthPoolBonus}) ";
-				}
-				if(bonusString == "")
-				{
-					bonusString = "No Buffs";
+					var bonusString = "";
+
+					if (trait.STR != 0)
+					{
+						bonusString += $"STR({trait.STR}) ";
+					}
+					if (trait.DEX != 0)
+					{
+						bonusString += $"DEX({trait.DEX}) ";
+					}
+					if (trait.END != 0)
+					{
+						bonusString += $"END({trait.END}) ";
+					}
+					if (trait.PER != 0)
+					{
+						bonusString += $"PER({trait.PER}) ";
+					}
+					if (trait.INT != 0)
+					{
+						bonusString += $"INT({trait.INT}) ";
+					}
+					if (trait.ArmorClassBonus != 0)
+					{
+						bonusString += $"AC({trait.ArmorClassBonus}) ";
+					}
+					if (trait.AbilityPointBonus != 0)
+					{
+						bonusString += $"AP({trait.AbilityPointBonus}) ";
+					}
+					if (trait.HealthPoolBonus != 0)
+					{
+						bonusString += $"HP({trait.HealthPoolBonus}) ";
+					}
+					if (bonusString == "")
+					{
+						bonusString = "No Buffs";
+					}
+
+					embedBuilder.AddField(trait.Description, bonusString, false);
 				}
 
-				embedBuilder.AddField(trait.Description, bonusString, false);
+				await ReplyAsync(embed: embedBuilder.Build());
 			}
-
-			await ReplyAsync("", false, embedBuilder.Build(), null);
 		}
 
 		[Command("educations")]

@@ -58,6 +58,7 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("armours")]
+        [Alias("armors")]
         public async Task ArmourList()
         {
             var valkFinderArmours = _stewardContext.ValkFinderArmours.ToList().Where(a => !a.IsUnique );
@@ -88,6 +89,7 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("armours unique")]
+        [Alias("armors unique")]
         [RequireStewardPermission]
         public async Task ArmourListUnique()
         {

@@ -123,6 +123,7 @@ namespace Steward.Discord.GenericCommands
         }
 
         [Command("inventory")]
+        [Alias("inv")]
         [RequireActiveCharacter]
         public async Task ShowInventory()
         {
